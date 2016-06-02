@@ -12,7 +12,7 @@
 #define TRUE    1
 #define FLASE   0
 
-typedef User LData;
+typedef int LData;
 
 typedef struct _node
 {

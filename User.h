@@ -5,19 +5,25 @@
 #ifndef DS_PROJECT_USER_H
 #define DS_PROJECT_USER_H
 
+#include <stdlib.h>
+#include <string.h>
+#include "LinkedList.h"
+
 #define TRUE    1
 #define FALSE   0
-#define LEN     30
+#define LEN     40
 
 typedef struct _user
 {
     int idNumber;
-    char sign_up_date[LEN];
-    char screen_name[LEN];
+    char* sign_up_date;
+    char* screen_name;
     
+    struct _user *next;         // link friend
 }User;
 
 void InitUser(User *user);
-void PushUser(User *, int, char*, char*);
+void AddUser(User *, int, char*, char*);
+void AddFriend(User *, User *);
 
 #endif //DS_PROJECT_USER_H
