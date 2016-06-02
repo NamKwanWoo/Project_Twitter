@@ -17,7 +17,38 @@ int main(void)
     }
     
     Interface();    // Show Interface
+    sKey = getchar();
     
+    // Enter the select menu -> screen clear working yet
+    switch (sKey)
+    {
+        case 0:
+
+        case 1:
+
+        case 2:
+
+        case 3:
+
+        case 4:
+
+        case 5:
+
+        case 6:
+
+        case 7:
+
+        case 8:
+
+        case 9:
+
+        case 99:
+            puts("Quit the program");
+            break;
+
+        default:
+            break;
+    }
     
     
     return 0;
@@ -36,5 +67,5 @@ void Interface()
     puts("8. Find strongly connected components");
     puts("9. Find shortest path from a given user");
     puts("99. Quit");
-    printf("Select Menu:");
+    printf("Select Menu: ");
 }
