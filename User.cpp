@@ -8,12 +8,6 @@
 void InitUser(User *user)
 {
     user->idNumber = -1;
-    user->sign_up_date = (char*)malloc(sizeof(char) * LEN);
-    user->screen_name = (char*)malloc(sizeof(char) * LEN);
-    
-    strcpy(user->sign_up_date, "Dummy User");
-    strcpy(user->screen_name, "Dummy User");
-    
     user->next = NULL;      // no linked friend
 }
 

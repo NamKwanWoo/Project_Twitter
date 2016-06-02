@@ -5,14 +5,18 @@ void Interface();
 
 int main(void)
 {
-    FILE *user_File = fopen("/Users/namnamnam/Desktop/KOREAUNIV_DS_03/user.utf8", "r");     // User File Length: 728  -> 182 Users
-    FILE *fren_File = fopen("/Users/namnamnam/Desktop/KOREAUNIV_DS_03/friend.utf8", "r");   // Fren File Length: 106,360 -> 26,590 Link 
-    FILE *word_File = fopen("/Users/namnamnam/Desktop/KOREAUNIV_DS_03/word.utf8", "r");     // Word File Length: 5,232 -> 1,308 Tweets
+    FILE *user_File = fopen("/Users/namnamnam/Desktop/KOREAUNIV_DS_03/user.utf8",
+                            "r");     // User File Length: 728  -> 182 Users
+    FILE *fren_File = fopen("/Users/namnamnam/Desktop/KOREAUNIV_DS_03/friend.utf8",
+                            "r");   // Fren File Length: 106,360 -> 26,590 Link 
+    FILE *word_File = fopen("/Users/namnamnam/Desktop/KOREAUNIV_DS_03/word.utf8",
+                            "r");     // Word File Length: 5,232 -> 1,308 Tweets
 
     User *user = (User *) malloc(sizeof(User));       //allocate User
 
     int sKey = 0;   // select number
-    int Usernum = 0;
+    int Total_User = 0, Total_Friendship_Records = 0, Total_Tweets;
+    int User_index = 0;
     int index = 0;
 
     if (user_File == NULL || fren_File == NULL || word_File == NULL)
@@ -25,47 +29,49 @@ int main(void)
 
     char *str = (char *) malloc(sizeof(char) * LEN);
     User *dummy = (User *) malloc(sizeof(User));
-    
-    int dummy_num = 0;
-    
-    while(fgets(str, LEN, user_File))
-        dummy_num++;
-    
-    printf("%d %d\n\n\n", dummy_num, dummy_num/4);
-    
+
     while (fgets(str, LEN, user_File))
     {
         if (index == 0)
         {
-            dummy->idNumber = (int) atof(str);
-            index ++;
+            (user + User_index)->idNumber = (int) atof(str);
+            index++;
         }
         else if (index == 1)
         {
-            dummy->sign_up_date = str;
-            index ++;
+            strcpy((user + User_index)->sign_up_date, str);
+            index++;
         }
-        else if (index == 2)
+        else if(index == 2)
         {
-            dummy->screen_name = str;
-            index ++;
+            strcpy((user + User_index)->screen_name, str);
+            index++;
         }
 
-        if (index == 3)
+        if(index == 3)
         {
-            index = 0;                              // init idx
-            user->next = dummy;
-
-            Usernum++;
+            User_index++;
+            //(user + User_index) = (User*)malloc(sizeof(User));
+            index = 0;
         }
+        
+        Total_User++;                              // link -> number ++    
     }
     
-    printf("%d\n", Usernum);
+    printf("%d %d\n\n\n", User_index, Total_User);
+
+    while (fgets(str, LEN, fren_File))
+    {
+        
+    }
+
+
+    Total_User /= 4;                               // Struct group(One User) consists 4 lines 
 
     Interface();    // Show Interface
     sKey = getchar();
 
-    // Enter the select menu -> screen clear working yet
+// Enter the select menu -> screen clear working yet
     switch (sKey)
     {
         case 0:

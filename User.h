@@ -16,8 +16,8 @@
 typedef struct _user
 {
     int idNumber;
-    char* sign_up_date;
-    char* screen_name;
+    char sign_up_date[LEN];
+    char screen_name[LEN];
     
     struct _user *next;         // link friend
 }User;
