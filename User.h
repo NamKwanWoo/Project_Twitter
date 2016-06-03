@@ -11,7 +11,7 @@
 
 #define TRUE    1
 #define FALSE   0
-#define LEN     40
+#define LEN     250
 
 typedef struct _user
 {
