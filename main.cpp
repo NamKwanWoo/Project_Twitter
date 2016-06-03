@@ -12,9 +12,13 @@ void Interface();
 
 void InputUserInfo(User *, FILE *, char *);
 
+void GetTheUserNum(FILE *, char *);
+
 void GetFriendShipNum(FILE *, char *);
 
 void GetTweetsNum(FILE *, char *);
+
+void ReadTheDataFile();
 
 void CloseFile(FILE *, FILE *, FILE *);
 
@@ -39,43 +43,70 @@ int main(void)
     }
 
     InitUser(user);
+
+    // 0. ReadDataFiles
+    /*Total users: xxx
+    Total friendship records: xxx
+    Total tweets: xxx*/
+
     InputUserInfo(user, user_File, str);
+    
     GetFriendShipNum(fren_File, str);
     GetTweetsNum(word_File, str);
 
+    // 1. Statistics
+    /*Average number of friends: xxx
+    Minimum friends: xxx
+    Maximum number of friends: xxx
+    Average tweets per user: xxx
+    Minium tweets per user: xxx
+    Maximu tweets per user: xxx*/
+    
+    //SetTheTweetNum(user, word_File, Total_User);
+
+    printf("%d %d %d\n\n", Total_Tweets, Total_User, Total_Friendship_Records);
+
     Interface();    // Show Interface
-    sKey = getchar();
 
-    // Enter the select menu -> screen clear working yet
-    switch (sKey)
+    while (TRUE)
     {
-        case 0:
+        scanf("%d", &sKey);
 
-        case 1:
 
-        case 2:
+        // Enter the select menu -> screen clear working yet
+        switch (sKey)
+        {
+            case 0:
+                ReadTheDataFile();
+                break;
+            case 1:
 
-        case 3:
+            case 2:
 
-        case 4:
+            case 3:
 
-        case 5:
+            case 4:
 
-        case 6:
+            case 5:
 
-        case 7:
+            case 6:
 
-        case 8:
+            case 7:
 
-        case 9:
+            case 8:
 
-        case 99:
-            puts("Quit the program");
-            break;
+            case 9:
 
-        default:
-            break;
+            case 99:
+                puts("Quit the program");
+                goto OutLoop;
+                break;
+
+            default:
+                break;
+        }
     }
+    OutLoop:
 
     free(str);
     free(user);
@@ -107,29 +138,30 @@ void InputUserInfo(User *user, FILE *user_File, char *str)
     {
         if (strcmp(str, "\n") == 0)
             continue;
-        if (index == 0)
-        {
-            (user + User_index)->idNumber = (int) atof(str);
-            index++;
-        }
-        else if (index == 1)
-        {
-            strcpy((user + User_index)->sign_up_date, str);
-            index++;
-        }
-        else if (index == 2)
-        {
-            strcpy((user + User_index)->screen_name, str);
-            index++;
-        }
-
 
         if (index == 3)
         {
             User_index++;
-            //(user + User_index) = (User*)malloc(sizeof(User));
+            InitUser(user+User_index);
             index = 0;
         }
+        
+        if (index == 0)
+        {
+            (user + User_index)->userInfo->idNumber = (int) atof(str);
+            index++;
+        }
+        else if (index == 1)
+        {
+            strcpy((user + User_index)->userInfo->sign_up_date, str);
+            index++;
+        }
+        else if (index == 2)
+        {
+            strcpy((user + User_index)->userInfo->screen_name, str);
+            index++;
+        }
+
 
         Total_User++;                              // link -> number ++    
     }
@@ -156,4 +188,11 @@ void CloseFile(FILE *user_File, FILE *fren_File, FILE *word_File)
     fclose(user_File);
     fclose(fren_File);
     fclose(word_File);
+}
+
+void ReadTheDataFile()
+{
+    printf("%s %d\n", "Total users: ", Total_User);
+    printf("%s %d\n", "Total friendship records: ", Total_Friendship_Records);
+    printf("%s %d\n", "Total tweets: ", Total_Tweets);
 }
