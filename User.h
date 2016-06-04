@@ -1,50 +1,55 @@
 //
-// Created by 남관우 on 2016. 6. 2..
+// Created by 남관우 on 2016. 6. 4..
 //
 
 #ifndef DS_PROJECT_USER_H
 #define DS_PROJECT_USER_H
 
+#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include "LinkedList.h"
+#include <string.h>
 
 #define TRUE    1
 #define FALSE   0
 #define LEN     250
 
-typedef struct _info
+typedef struct _userr
 {
     int idNumber;
     char sign_up_date[LEN];
     char screen_name[LEN];
-}UserInfo;
 
-typedef struct _tweets
-{
-    char upload_date[LEN];
-    char word[LEN];
-    int numOfTweets;
-}Tweet;
+    //List *tweet;
+    //List *aFriend;
 
-typedef struct _friend
-{
-    int id;
-    int numOfFriend;
-    struct _freind *next;
-}Friend;
+    struct _userr *next;         // link friend
+} User;
+
+User *user = (User *) malloc(sizeof(User));       //allocate User
+char *str = (char *) malloc(sizeof(char) * LEN);
 
 
-typedef struct _user
-{
-    UserInfo *userInfo;
-    Tweet *tweet;
-    Friend *aFriend;
-}User;
+static int Total_User = 0, Total_Friendship_Records = 0, Total_Tweets = 0;
+static int User_index = 0;
 
-void InitUser(User *user);
-void AddUser(User *, int, char*, char*);
-void AddFriend(User *, User *);
-void SetTheTweetNum(User*, FILE*, int);
+FILE *user_File = fopen("/Users/namnamnam/Desktop/KOREAUNIV_DS_03/ETC/user.utf8", "r");
+FILE *fren_File = fopen("/Users/namnamnam/Desktop/KOREAUNIV_DS_03/ETC/friend.utf8", "r");
+FILE *word_File = fopen("/Users/namnamnam/Desktop/KOREAUNIV_DS_03/ETC/word.utf8", "r");
+
+void InitUser();
+void GetTheUserNum();
+void GetFriendShipNum();
+void GetTweetsNum();
+void PrintInterface();
+void CloseFile();
 
 #endif //DS_PROJECT_USER_H
+
+
+
+/*  
+     *  User File Length: 728  -> 182 Users
+     *  Fren File Length: 106,360 -> 35,453Link 
+     *  Word File Length: 5,232 -> 1,308 Tweets
+     */

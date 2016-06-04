@@ -1,80 +1,178 @@
 //
-// Created by 남관우 on 2016. 6. 2..
+// Created by 남관우 on 2016. 6. 4..
 //
 
 #include "LinkedList.h"
 
 void InitList(List *list)
 {
-    list->head = NULL;
-    list->cur = NULL;
-    list->tail = NULL;
+    list = (List *) malloc(sizeof(List));
     
+    list->head = NULL;
+    list->tail = NULL;
+    list->cur = NULL;
+
     list->numOfData = 0;
 }
 
-int AddList(List *list, LData* dataIn)
+int IsListEmpty(List *list)
 {
-    Node *addNode = (Node*)malloc(sizeof(Node));
-    addNode->data = (LData*)dataIn;
-    addNode->next = NULL;
+    if (list->head == NULL)
+        return TRUE;
+    else
+        return FALSE;
+}
+
+void AddData_Head(List *list, Data data)
+{
+    Node *addNode = (Node *) malloc(sizeof(Node));
+    addNode->data = (char *)malloc(sizeof(char)*LEN);
     
-    if(!list->head)
+    addNode->next = NULL;
+    addNode->data = data;
+
+    if (IsListEmpty(list))
     {
         list->head = addNode;
         list->tail = addNode;
     }
-    
+    else
+    {
+        addNode->next = list->head;
+        list->head = addNode;
+    }
+
+    (list->numOfData)++;
+}
+
+void AddData_Tail(List *list, Data data)
+{
+    Node *addNode = (Node *) malloc(sizeof(Node));
+    addNode->data = (char *)malloc(sizeof(char)*LEN);
+
+    addNode->next = NULL;
+    addNode->data = data;
+
+    if (IsListEmpty(list))
+    {
+        list->head = addNode;
+        list->tail = addNode;
+    }
     else
     {
         list->tail->next = addNode;
         list->tail = addNode;
     }
-    
+
     (list->numOfData)++;
-    return TRUE;
 }
 
-int DeleteList(List *list)
+
+Data DeleteData_Head(List *list)
+{
+    Node *deleteNode;
+    Data delData;
+
+    if (IsListEmpty(list))
+        return FALSE;
+
+    deleteNode = list->head;
+    delData = list->head->data;
+    list->head = list->head->next;
+
+    free(deleteNode);
+    free(delData);
+    (list->numOfData)--;
+    return delData;
+}
+
+Data DeleteData_Tail(List *list)
 {
     Node *delNode;
-    LData *delData;
-    
+    Data delData;
+
+    if (IsListEmpty(list))
+        return FALSE;
+
+    delNode = list->tail;
+    delData = list->tail->data;
+
     list->cur = list->head;
-    
-    if(list->head == list->tail)
+    while (list->cur->next != list->tail)
+        list->cur = list->cur->next;
+
+    list->tail = list->cur;
+
+    free(delNode);
+
+    (list->numOfData)--;
+    return delData;
+}
+
+Data DeleteSpecData(List *list, Data data)
+{
+    Node *delNode;
+    Data delData;
+
+    list->cur = list->head;
+
+    if (list->cur == NULL)
+        return NULL;
+
+    else if (list->numOfData == 1)
     {
         delNode = list->head;
-        delData = (LData*)list->head->data;
-        
+        delData = list->head->data;
+
         list->head = NULL;
         list->tail = NULL;
     }
+
+    else if (list->cur->data == data)
+    {
+        delNode = list->cur;
+        delData = list->cur->data;
+
+        list->head = list->head->next;
+    }
+
     else
     {
-        while(list->cur->next != list->tail)
+        while (list->cur != NULL && list->cur->data != data)
             list->cur = list->cur->next;
-        
-        delNode = list->tail;
-        delData = (LData*)list->tail->data;
-        
-        list->tail = list->cur;
-        list->tail->next = NULL;
+
+        if (list->cur == NULL)
+            return NULL;
+
+        Node *before = list->head;
+        while (before->next != list->cur)
+            before = before->next;
+
+        delNode = list->cur;
+        delData = list->cur->data;
+
+        if (list->cur == list->tail)
+            list->tail = before;
+
+        before->next = list->cur->next;
     }
-    
+
     free(delNode);
-    free(delData);
     (list->numOfData)--;
 
-    return TRUE;
+    return delData;
 }
 
-LData* LastData(List *list)
+Data HeadData(List *list)
 {
-    return (LData*) list->tail->data;
+    if (IsListEmpty(list))
+        return FALSE;
+    return list->head->data;
 }
 
-LData* FirstData(List *list)
+Data TailData(List *list)
 {
-    return (LData*)list->head->data;
+    if (IsListEmpty(list))
+        return FALSE;
+    return list->tail->data;
 }

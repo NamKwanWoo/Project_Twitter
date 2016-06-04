@@ -5,38 +5,58 @@
 #ifndef DS_PROJECT_LINKEDLIST_H
 #define DS_PROJECT_LINKEDLIST_H
 
+
 #include <stdio.h>
 #include <stdlib.h>
-#include "User.h"
 
 #define TRUE    1
-#define FLASE   0
+#define FALSE    0
 
-typedef int LData;
+#define LEN     250
 
-typedef struct _node
-{
-    LData* data;
-    struct _node *next;
-} Node;
+typedef char* Data;
 
 typedef struct _list
 {
+    Data data;
+    struct _list *next;
+} Node;
+
+typedef struct _linkedList
+{
     Node *head;
-    Node *cur;
     Node *tail;
+    Node *cur;
 
     int numOfData;
-} List;
+} LinkedList;
+
+typedef LinkedList List;
 
 void InitList(List *);
 
-int AddList(List *, LData*);
+int IsListEmpty(List *);
 
-int DeleteList(List *);
+void AddData_Head(List *, Data data);
 
-LData* LastData(List *list);
+void AddData_Tail(List *, Data data);
 
-LData* FirstData(List *list);
+void Add_alphabeticalOrder(List *list, Data data);
+
+Data DeleteSpecData(List *list, Data data);
+
+Data DeleteData_Head(List *);
+
+Data DeleteData_Tail(List *);
+
+Data HeadData(List *);
+
+Data TailData(List *);
+
+
+
 
 #endif //DS_PROJECT_LINKEDLIST_H
+
+
+
