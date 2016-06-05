@@ -7,10 +7,46 @@
 #define LEN     250
 #define NewLine     printf("\n\n");
 
-typedef char *Data;
+#define WHITE 0
+#define GRAY  1
+#define BLACK 2
 
-static int Total_User = 0, Total_Friendship_Records = 0, Total_Tweets = 0;
-static int User_index = 0;
+typedef struct Adj
+{
+    int n;
+    struct Adj *next;
+} Adj;
+
+typedef struct
+{
+    int color;
+    int parent;
+    char name[10];
+    int n;
+    Adj *first;
+} Vertex;
+
+typedef struct
+{
+    Vertex super;
+    double d;
+} BFSVertex;
+
+typedef struct
+{
+    Vertex super;
+    int dfs_in, dfs_out;
+} DFSVertex;
+
+typedef struct
+{
+    int front;
+    int rear;
+    int sz;
+    int *buf;
+} Queue;
+
+typedef char *Data;
 
 typedef struct _list
 {
@@ -47,65 +83,187 @@ typedef struct _user
     struct _user *next;         // link friend
 } User;
 
+static int Total_User = 0, Total_Friendship_Records = 0, Total_Tweets = 0;
+static int User_index = 0;
 
-void Interface();
-
-void GetTheUserNum(User *user, FILE *user_File, char *str);
-
-void GetFriendShipNum(User *user, FILE *fren_File, char *str);
-
-void GetTweetsNum(User *user, FILE *word_File, char *str);
-
-void ReadTheDataFile();
-
-int Process();
-
-void InitUser(User *user);
-
-void AddUser(User *, int, char *, char *);
-
-void AddFriend(User *, User *);
-
-void InitList(List *);
-
-int IsListEmpty(List *);
-
-void AddData_Head(List *, Data data);
-
-void AddData_Tail(List *, Data data);
-
-void Add_alphabeticalOrder(List *list, Data data);
-
-Data DeleteSpecData(List *list, Data data);
-
-Data DeleteData_Head(List *);
-
-Data DeleteData_Tail(List *);
-
-Data HeadData(List *);
-
-Data TailData(List *);
-
-
-int main(void)
+void Adj_init(Adj *self)
 {
-    FILE *user_File = fopen("/Users/namnamnam/Desktop/KOREAUNIV_DS_03/ETC/user.utf8", "r");     //182     
-    FILE *fren_File = fopen("/Users/namnamnam/Desktop/KOREAUNIV_DS_03/ETC/friend.utf8", "r");   //35,453 
-    FILE *word_File = fopen("/Users/namnamnam/Desktop/KOREAUNIV_DS_03/ETC/word.utf8", "r");     //1,308
-    User *user = (User *) malloc(sizeof(User));       //allocate User
-    char *str = (char *) malloc(sizeof(char) * LEN);
+    self->n = 0;
+    self->next = NULL;
+}
 
-    InitUser(user);
+void Vertex_init(Vertex *self)
+{
+    self->color = 0;
+    self->parent = -1;
+    strcpy(self->name, "(none)");
+    self->n = 0;
+    self->first = NULL;
+}
 
-    GetTheUserNum(user, user_File, str);
-    GetFriendShipNum(user, fren_File, str);
-    GetTweetsNum(user, word_File, str);
+void Vertex_add(Vertex *self, Vertex *v)
+{
+    Adj *a = (Adj *) malloc(sizeof(Adj));
+    a->n = v->n;
+    a->next = self->first;
+    self->first = a;
+}
 
-    do { Interface(); } while (Process());
+void BFSVertex_init(BFSVertex *self)
+{
+    Vertex_init(&self->super);
+    self->d = 1E10;
+}
 
-    printf("%d\n\n", user->tweetsNum);
+void DFSVertex_init(DFSVertex *self)
+{
+    Vertex_init(&self->super);
+    self->dfs_in = 0;
+    self->dfs_out = 0;
+}
 
-    return 0;
+void Queue_init(Queue *self)
+{
+    self->front = 0;
+    self->rear = 0;
+    self->sz = 0;
+    self->buf = NULL;
+}
+
+void Queue_create_queue(Queue *self, int sz)
+{
+    self->sz = sz;
+    self->buf = (int *) malloc(sizeof(int) * sz);
+}
+
+void Queue_enqueue(Queue *self, int val)
+{
+    self->buf[self->rear] = val;
+    self->rear = (self->rear + 1) % self->sz;
+}
+
+int Queue_dequeue(Queue *self)
+{
+    int res = self->buf[self->front];
+    self->front = (self->front + 1) % self->sz;
+    return res;
+}
+
+int Queue_is_empty(Queue *self)
+{
+    return self->front == self->rear;
+}
+
+void print_bfsvertex(BFSVertex *vertices, int n)
+{
+    printf("%-8s ", vertices[n].super.name);
+    printf("%-8d ", vertices[n].super.color);
+    printf("%-8d ", vertices[n].super.parent);
+    printf("%-16.0f\t: ", vertices[n].d);
+    for (Adj *p = vertices[n].super.first; p; p = p->next)
+    {
+        printf("%s ", vertices[p->n].super.name);
+    }
+    printf("\n");
+}
+
+void print_dfsvertex(DFSVertex *vertices, int n)
+{
+    printf("%-8s ", vertices[n].super.name);
+    printf("%-8d ", vertices[n].super.color);
+    printf("%-8d ", vertices[n].super.parent);
+    printf("%-8d ", vertices[n].dfs_in);
+    printf("%-8d", vertices[n].dfs_out);
+
+    printf("   \t: ");
+
+    for (Adj *p = vertices[n].super.first; p; p = p->next)
+    {
+        printf("%s ", vertices[p->n].super.name);
+    }
+
+    printf("\n");
+}
+
+void bfs(BFSVertex *vertices, int nelem, int s)
+{
+    Queue q;
+    //Start from S
+    for (int u = 0; u < nelem; u++)
+    {
+        if (vertices[u].super.n != s)
+        {
+            vertices[u].super.color = WHITE;
+            vertices[u].d = 1E10;
+            vertices[u].super.parent = -1;
+        }
+    }
+    // Except for s, all init -1, White;
+
+
+    vertices[s].super.color = GRAY;
+    vertices[s].d = 0;
+    vertices[s].super.parent = -1;
+
+    Queue_init(&q);
+    Queue_create_queue(&q, nelem);
+    Queue_enqueue(&q, s);
+
+    while (!Queue_is_empty(&q))
+    {
+        int u = Queue_dequeue(&q);
+        for (Adj *adj_v = vertices[u].super.first; adj_v; adj_v = adj_v->next)
+        {
+            if (vertices[adj_v->n].super.color == WHITE)
+            {
+                vertices[adj_v->n].super.color = GRAY;
+                vertices[adj_v->n].d = vertices[u].d + 1;
+                vertices[adj_v->n].super.parent = u;
+                Queue_enqueue(&q, adj_v->n);
+            }
+        }
+        vertices[u].super.color = BLACK;
+    }
+
+    // (s), (w r), (x t v), (y u)
+}
+
+int dfs_time = 0;
+
+
+void dfs_visit(DFSVertex *vertices, int nelem, int u)
+{
+    dfs_time++;
+    vertices[u].dfs_in = dfs_time;
+    vertices[u].super.color = GRAY;
+    for (Adj *v = vertices[u].super.first; v; v = v->next)
+    {
+        if (vertices[v->n].super.color == WHITE)
+        {
+            vertices[v->n].super.parent = u;
+            dfs_visit(vertices, nelem, v->n);
+        }
+    }
+    vertices[u].super.color = BLACK;
+    dfs_time++;
+    vertices[u].dfs_out = dfs_time;
+}
+
+void dfs(DFSVertex *vertices, int nelem)
+{
+    for (int u = 0; u < nelem; u++)
+    {
+        vertices[u].super.color = WHITE;
+        vertices[u].super.parent = -1;
+    }
+    dfs_time = 0;
+    for (int u = 0; u < nelem; u++)
+    {
+        if (vertices[u].super.n == WHITE)
+        {
+            dfs_visit(vertices, nelem, u);
+        }
+    }
 }
 
 void Interface()
@@ -122,162 +280,6 @@ void Interface()
     puts("9. Find shortest path from a given user");
     puts("99. Quit");
     printf("Select Menu: ");
-}
-
-void GetTheUserNum(User *user, FILE *user_File, char *str)
-{
-    int index = 0;
-
-    while (fgets(str, LEN, user_File))
-    {
-        if (strcmp(str, "\n") == 0)
-            continue;
-
-        if (index == 3)
-        {
-            User_index++;
-            index = 0;
-        }
-
-        if (index == 0)
-        {
-            (user + User_index)->idNumber = atoi(str);
-            index++;
-        }
-        else if (index == 1)
-        {
-            strcpy((user + User_index)->sign_up_date, str);
-            index++;
-        }
-        else if (index == 2)
-        {
-            strcpy((user + User_index)->screen_name, str);
-            index++;
-        }
-
-
-        Total_User++;                              // link -> number ++    
-    }
-
-    Total_User = User_index + 1;                        // Struct group(One User) consists 4 lines
-}
-
-void GetFriendShipNum(User *user, FILE *fren_File, char *str)
-{
-    while (fgets(str, LEN, fren_File))
-    {
-        Total_Friendship_Records++;
-    }
-    Total_Friendship_Records /= 3;
-}
-
-void GetTweetsNum(User *user, FILE *word_File, char *str)
-{
-    int index = 0;
-    int userIndex = 0;
-    int i;
-
-    for (i = 0; i < User_index; i++)
-    {
-        InitList(&(user + i)->tweet);
-        (user + i)->tweet.numOfData = 0;
-    }
-
-    userIndex = 0;
-    while (fgets(str, LEN, word_File))
-    {
-        if (strcmp(str, "\n") == 0 || strcmp(str, "\r\n") == 0)
-        {
-            Total_Tweets++;
-            continue;
-        }
-
-        if (index == 3) { index = 0; }
-
-        if (index == 0)
-        {
-            if ((user + userIndex)->idNumber == atoi(str))
-                (user + userIndex)->tweetsNum++;
-
-            else
-            {
-                userIndex = 0;
-                while ((user + userIndex)->idNumber != atoi(str) && (user+userIndex) != NULL)
-                    userIndex++;
-
-                (user + userIndex)->tweetsNum++;
-            }
-            index++;
-        }
-        else if (index == 1) { index++; }
-
-        else if (index == 2)
-        {
-            AddData_Tail(&(user + userIndex)->tweet, str);
-            index++;
-        }
-
-        Total_Tweets++;
-    }
-
-    Total_Tweets /= 4;
-}
-
-
-void ReadTheDataFile()
-{
-    NewLine
-    printf("%s %d\n", "Total users: ", Total_User);
-    printf("%s %d\n", "Total friendship records: ", Total_Friendship_Records);
-    printf("%s %d\n", "Total tweets: ", Total_Tweets);
-    NewLine
-}
-
-int Process()
-{
-    int sKey;
-    scanf("%d", &sKey);
-
-    switch (sKey)
-    {
-        case 0:
-            ReadTheDataFile();
-            break;
-
-        case 1:
-            // 1. Statistics
-            /*Average number of friends: xxx
-            Minimum friends: xxx
-            Maximum number of friends: xxx
-            Average tweets per user: xxx
-            Minium tweets per user: xxx
-            Maximu tweets per user: xxx*/
-
-        case 2:
-
-        case 3:
-
-        case 4:
-
-        case 5:
-
-        case 6:
-
-        case 7:
-
-        case 8:
-
-        case 9:
-
-        case 99:
-            NewLine
-            puts("Quit the program");
-            return FALSE;
-
-        default:
-            break;
-    }
-    return TRUE;
 }
 
 void InitUser(User *user)
@@ -487,4 +489,181 @@ Data TailData(List *list)
     if (IsListEmpty(list))
         return FALSE;
     return list->tail->data;
+}
+
+void GetTheUserNum(User *user, FILE *user_File, char *str)
+{
+    int index = 0;
+
+    while (fgets(str, LEN, user_File))
+    {
+        if (strcmp(str, "\n") == 0)
+            continue;
+
+        if (index == 3)
+        {
+            User_index++;
+            index = 0;
+        }
+
+        if (index == 0)
+        {
+            (user + User_index)->idNumber = atoi(str);
+            index++;
+        }
+        else if (index == 1)
+        {
+            strcpy((user + User_index)->sign_up_date, str);
+            index++;
+        }
+        else if (index == 2)
+        {
+            strcpy((user + User_index)->screen_name, str);
+            index++;
+        }
+
+
+        Total_User++;                              // link -> number ++    
+    }
+
+    Total_User = User_index + 1;                        // Struct group(One User) consists 4 lines
+}
+
+void GetFriendShipNum(User *user, FILE *fren_File, char *str)
+{
+    while (fgets(str, LEN, fren_File))
+    {
+        Total_Friendship_Records++;
+    }
+    Total_Friendship_Records /= 3;
+}
+
+void GetTweetsNum(User *user, FILE *word_File, char *str)
+{
+    int index = 0;
+    int userIndex = 0;
+    int i;
+
+    for (i = 0; i < User_index; i++)
+    {
+        InitList(&(user + i)->tweet);
+        (user + i)->tweet.numOfData = 0;
+    }
+
+    userIndex = 0;
+    while (fgets(str, LEN, word_File))
+    {
+        if (strcmp(str, "\n") == 0 || strcmp(str, "\r\n") == 0)
+        {
+            Total_Tweets++;
+            continue;
+        }
+
+        if (index == 3) { index = 0; }
+
+        if (index == 0)
+        {
+            if ((user + userIndex)->idNumber == atoi(str))
+                (user + userIndex)->tweetsNum++;
+
+            else
+            {
+                userIndex = 0;
+                while ((user + userIndex)->idNumber != atoi(str) && (user + userIndex) != NULL)
+                    userIndex++;
+
+                (user + userIndex)->tweetsNum++;
+            }
+            index++;
+        }
+        else if (index == 1) { index++; }
+
+        else if (index == 2)
+        {
+            AddData_Tail(&(user + userIndex)->tweet, str);
+            index++;
+        }
+
+        Total_Tweets++;
+    }
+
+    Total_Tweets /= 4;
+}
+
+
+void ReadTheDataFile()
+{
+    NewLine
+    printf("%s %d\n", "Total users: ", Total_User);
+    printf("%s %d\n", "Total friendship records: ", Total_Friendship_Records);
+    printf("%s %d\n", "Total tweets: ", Total_Tweets);
+    NewLine
+}
+
+int Process()
+{
+    int sKey;
+    scanf("%d", &sKey);
+
+    switch (sKey)
+    {
+        case 0:
+            ReadTheDataFile();
+            break;
+
+        case 1:
+            // 1. Statistics
+            /*Average number of friends: xxx
+            Minimum friends: xxx
+            Maximum number of friends: xxx
+            Average tweets per user: xxx
+            Minium tweets per user: xxx
+            Maximu tweets per user: xxx*/
+
+        case 2:
+
+        case 3:
+
+        case 4:
+
+        case 5:
+
+        case 6:
+
+        case 7:
+
+        case 8:
+
+        case 9:
+
+        case 99:
+            NewLine
+            puts("Quit the program");
+            return FALSE;
+
+        default:
+            break;
+    }
+    return TRUE;
+}
+
+int main(void)
+{
+    FILE *user_File = fopen("/Users/namnamnam/Desktop/KOREAUNIV_DS_03/ETC/user.utf8", "r");     //182     
+    FILE *fren_File = fopen("/Users/namnamnam/Desktop/KOREAUNIV_DS_03/ETC/friend.utf8", "r");   //35,453 
+    FILE *word_File = fopen("/Users/namnamnam/Desktop/KOREAUNIV_DS_03/ETC/word.utf8", "r");     //1,308
+    User *user = (User *) malloc(sizeof(User));       //allocate User
+    char *str = (char *) malloc(sizeof(char) * LEN);
+
+    InitUser(user);
+
+    GetTheUserNum(user, user_File, str);
+    GetFriendShipNum(user, fren_File, str);
+    GetTweetsNum(user, word_File, str);
+
+    do { Interface(); } while (Process());
+
+    printf("%d\n\n", user->tweetsNum);
+
+    return 0;
 }
