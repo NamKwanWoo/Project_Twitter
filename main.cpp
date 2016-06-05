@@ -1,7 +1,52 @@
-#include "User.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define TRUE    1
+#define FALSE   0
+#define LEN     250
+#define NewLine     printf("\n\n");
+
+typedef char *Data;
 
 static int Total_User = 0, Total_Friendship_Records = 0, Total_Tweets = 0;
 static int User_index = 0;
+
+typedef struct _list
+{
+    Data data;
+    struct _list *next;
+} Node;
+
+typedef struct _linkedList
+{
+    Node *head;
+    Node *tail;
+    Node *cur;
+
+    int numOfData;
+} LinkedList;
+
+typedef LinkedList List;
+
+typedef struct _user
+{
+    int idNumber;
+    char sign_up_date[LEN];
+    char screen_name[LEN];
+
+    List tweet;
+    List aFriend;
+
+    //char tweetWord[1000][LEN];
+    //int aFriend[1000];
+
+    int tweetsNum;
+    int friendsNum;
+
+    struct _user *next;         // link friend
+} User;
+
 
 void Interface();
 
@@ -14,6 +59,33 @@ void GetTweetsNum(User *user, FILE *word_File, char *str);
 void ReadTheDataFile();
 
 int Process();
+
+void InitUser(User *user);
+
+void AddUser(User *, int, char *, char *);
+
+void AddFriend(User *, User *);
+
+void InitList(List *);
+
+int IsListEmpty(List *);
+
+void AddData_Head(List *, Data data);
+
+void AddData_Tail(List *, Data data);
+
+void Add_alphabeticalOrder(List *list, Data data);
+
+Data DeleteSpecData(List *list, Data data);
+
+Data DeleteData_Head(List *);
+
+Data DeleteData_Tail(List *);
+
+Data HeadData(List *);
+
+Data TailData(List *);
+
 
 int main(void)
 {
@@ -30,7 +102,7 @@ int main(void)
     GetTweetsNum(user, word_File, str);
 
     do { Interface(); } while (Process());
-    
+
     printf("%d\n\n", user->tweetsNum);
 
     return 0;
@@ -103,7 +175,15 @@ void GetTweetsNum(User *user, FILE *word_File, char *str)
 {
     int index = 0;
     int userIndex = 0;
+    int i;
 
+    for (i = 0; i < User_index; i++)
+    {
+        InitList(&(user + i)->tweet);
+        (user + i)->tweet.numOfData = 0;
+    }
+
+    userIndex = 0;
     while (fgets(str, LEN, word_File))
     {
         if (strcmp(str, "\n") == 0 || strcmp(str, "\r\n") == 0)
@@ -116,13 +196,13 @@ void GetTweetsNum(User *user, FILE *word_File, char *str)
 
         if (index == 0)
         {
-            if( (user + userIndex)->idNumber == atoi(str))
-                (user + userIndex)->tweetsNum ++;
-                
+            if ((user + userIndex)->idNumber == atoi(str))
+                (user + userIndex)->tweetsNum++;
+
             else
             {
                 userIndex = 0;
-                while ((user + userIndex)->idNumber != atoi(str))
+                while ((user + userIndex)->idNumber != atoi(str) && (user+userIndex) != NULL)
                     userIndex++;
 
                 (user + userIndex)->tweetsNum++;
@@ -130,16 +210,16 @@ void GetTweetsNum(User *user, FILE *word_File, char *str)
             index++;
         }
         else if (index == 1) { index++; }
-            
-        else if (index == 2) 
-        { 
-            //strcpy( (user+userIndex)->tweetWord[(user+userIndex)->tweetsNum - 1], str );
-            index++; 
+
+        else if (index == 2)
+        {
+            AddData_Tail(&(user + userIndex)->tweet, str);
+            index++;
         }
 
         Total_Tweets++;
     }
-    
+
     Total_Tweets /= 4;
 }
 
@@ -198,4 +278,213 @@ int Process()
             break;
     }
     return TRUE;
+}
+
+void InitUser(User *user)
+{
+    user->idNumber = -1;
+
+    user->friendsNum = 0;
+    user->tweetsNum = 0;
+
+    strcpy(user->sign_up_date, "Dummy User");
+    strcpy(user->screen_name, "Dummy User");
+
+    user->next = NULL;      // no linked friend
+}
+
+void AddUser(User *user, int id, char *date, char *name)
+{
+    user->idNumber = id;
+    strcpy(user->sign_up_date, date);
+    strcpy(user->screen_name, name);
+}
+
+void AddFriend(User *main_User, User *add_User)     // AddTail
+{
+    if (main_User->next == NULL)
+        main_User->next = add_User;
+
+    else
+    {
+        User *cur = main_User->next;
+
+        while (cur->next != NULL)
+            cur = cur->next;
+
+        cur->next = add_User;
+    }
+}
+
+void InitList(List *list)
+{
+    list = (List *) malloc(sizeof(List));
+
+    list->head = NULL;
+    list->tail = NULL;
+    list->cur = NULL;
+
+    list->numOfData = 0;
+}
+
+int IsListEmpty(List *list)
+{
+    if (list->numOfData == 0)
+        return TRUE;
+    else
+        return FALSE;
+}
+
+void AddData_Head(List *list, Data data)
+{
+    Node *addNode = (Node *) malloc(sizeof(Node));
+    addNode->data = (char *) malloc(sizeof(char) * LEN);
+
+    addNode->next = NULL;
+    addNode->data = data;
+
+    if (IsListEmpty(list))
+    {
+        list->head = addNode;
+        list->tail = addNode;
+    }
+    else
+    {
+        addNode->next = list->head;
+        list->head = addNode;
+    }
+
+    (list->numOfData)++;
+}
+
+void AddData_Tail(List *list, Data data)
+{
+    Node *addNode = (Node *) malloc(sizeof(Node));
+    addNode->data = (char *) malloc(sizeof(char) * LEN);
+
+    addNode->next = NULL;
+    addNode->data = data;
+
+    if (IsListEmpty(list))
+    {
+        list->head = addNode;
+        list->tail = addNode;
+    }
+    else
+    {
+        list->tail->next = addNode;
+        list->tail = addNode;
+    }
+
+    (list->numOfData)++;
+}
+
+
+Data DeleteData_Head(List *list)
+{
+    Node *deleteNode;
+    Data delData;
+
+    if (IsListEmpty(list))
+        return FALSE;
+
+    deleteNode = list->head;
+    delData = list->head->data;
+    list->head = list->head->next;
+
+    free(deleteNode);
+    //free(delData);
+    (list->numOfData)--;
+    return delData;
+}
+
+Data DeleteData_Tail(List *list)
+{
+    Node *delNode;
+    Data delData;
+
+    if (IsListEmpty(list))
+        return FALSE;
+
+    delNode = list->tail;
+    delData = list->tail->data;
+
+    list->cur = list->head;
+    while (list->cur->next != list->tail)
+        list->cur = list->cur->next;
+
+    list->tail = list->cur;
+
+    free(delNode);
+
+    (list->numOfData)--;
+    return delData;
+}
+
+Data DeleteSpecData(List *list, Data data)
+{
+    Node *delNode;
+    Data delData;
+
+    list->cur = list->head;
+
+    if (list->cur == NULL)
+        return NULL;
+
+    else if (list->numOfData == 1)
+    {
+        delNode = list->head;
+        delData = list->head->data;
+
+        list->head = NULL;
+        list->tail = NULL;
+    }
+
+    else if (list->cur->data == data)
+    {
+        delNode = list->cur;
+        delData = list->cur->data;
+
+        list->head = list->head->next;
+    }
+
+    else
+    {
+        while (list->cur != NULL && list->cur->data != data)
+            list->cur = list->cur->next;
+
+        if (list->cur == NULL)
+            return NULL;
+
+        Node *before = list->head;
+        while (before->next != list->cur)
+            before = before->next;
+
+        delNode = list->cur;
+        delData = list->cur->data;
+
+        if (list->cur == list->tail)
+            list->tail = before;
+
+        before->next = list->cur->next;
+    }
+
+    free(delNode);
+    (list->numOfData)--;
+
+    return delData;
+}
+
+Data HeadData(List *list)
+{
+    if (IsListEmpty(list))
+        return FALSE;
+    return list->head->data;
+}
+
+Data TailData(List *list)
+{
+    if (IsListEmpty(list))
+        return FALSE;
+    return list->tail->data;
 }
