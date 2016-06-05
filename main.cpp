@@ -29,8 +29,9 @@ int main(void)
     GetFriendShipNum(user, fren_File, str);
     GetTweetsNum(user, word_File, str);
 
-
     do { Interface(); } while (Process());
+    
+    printf("%d\n\n", user->tweetsNum);
 
     return 0;
 }
@@ -68,7 +69,7 @@ void GetTheUserNum(User *user, FILE *user_File, char *str)
 
         if (index == 0)
         {
-            (user + User_index)->idNumber = (int) atof(str);
+            (user + User_index)->idNumber = atoi(str);
             index++;
         }
         else if (index == 1)
@@ -100,10 +101,45 @@ void GetFriendShipNum(User *user, FILE *fren_File, char *str)
 
 void GetTweetsNum(User *user, FILE *word_File, char *str)
 {
+    int index = 0;
+    int userIndex = 0;
+
     while (fgets(str, LEN, word_File))
     {
+        if (strcmp(str, "\n") == 0 || strcmp(str, "\r\n") == 0)
+        {
+            Total_Tweets++;
+            continue;
+        }
+
+        if (index == 3) { index = 0; }
+
+        if (index == 0)
+        {
+            if( (user + userIndex)->idNumber == atoi(str))
+                (user + userIndex)->tweetsNum ++;
+                
+            else
+            {
+                userIndex = 0;
+                while ((user + userIndex)->idNumber != atoi(str))
+                    userIndex++;
+
+                (user + userIndex)->tweetsNum++;
+            }
+            index++;
+        }
+        else if (index == 1) { index++; }
+            
+        else if (index == 2) 
+        { 
+            //strcpy( (user+userIndex)->tweetWord[(user+userIndex)->tweetsNum - 1], str );
+            index++; 
+        }
+
         Total_Tweets++;
     }
+    
     Total_Tweets /= 4;
 }
 
@@ -125,10 +161,6 @@ int Process()
     switch (sKey)
     {
         case 0:
-            // 0. ReadDataFiles
-            /*Total users: xxx
-            Total friendship records: xxx
-            Total tweets: xxx*/
             ReadTheDataFile();
             break;
 

@@ -17,7 +17,7 @@ void InitList(List *list)
 
 int IsListEmpty(List *list)
 {
-    if (list->head == NULL)
+    if (list->numOfData == 0)
         return TRUE;
     else
         return FALSE;
@@ -81,7 +81,7 @@ Data DeleteData_Head(List *list)
     list->head = list->head->next;
 
     free(deleteNode);
-    free(delData);
+    //free(delData);
     (list->numOfData)--;
     return delData;
 }

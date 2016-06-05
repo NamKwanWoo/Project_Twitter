@@ -8,6 +8,9 @@
 void InitUser(User *user)
 {
     user->idNumber = -1;
+    
+    user->friendsNum = 0;
+    user->tweetsNum = 0;
 
     strcpy(user->sign_up_date, "Dummy User");
     strcpy(user->screen_name, "Dummy User");

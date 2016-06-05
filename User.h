@@ -20,8 +20,14 @@ typedef struct _user
     char sign_up_date[LEN];
     char screen_name[LEN];
     
-    int tweetNum;
-    int friendNum;
+    //List *tweet;
+    //List *aFriend;
+    
+    //char tweetWord[1000][LEN];
+    //int aFriend[1000];
+    
+    int tweetsNum;
+    int friendsNum;
 
     struct _user *next;         // link friend
 }User;
