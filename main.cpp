@@ -2,13 +2,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define LEN     250
 #define TRUE    1
 #define FALSE   0
-#define LEN     250
 #define NewLine     printf("\n\n");
-
-#define WHITE 0
-#define GRAY  1
 
 enum nodeColor
 {
@@ -16,17 +13,49 @@ enum nodeColor
     BLACK
 };
 
+typedef char Data;
+
+typedef struct _node
+{
+    Data data[LEN];
+    struct _node *next;
+}Node;
+
+typedef struct _list
+{
+    Node *head;
+    Node *cur;
+    Node *tail;
+    
+    int numOfData;
+}List;
+
+
+typedef struct _user
+{
+    int idNumber;
+    char sign_up_date[LEN];
+    char screen_name[LEN];
+
+    int tweetsNum;
+    int friendsNum;
+
+    struct _user *next;         // link friend
+} User;
+
 struct rbNode
 {
-    int data, color;
+    User *data;
+    int color;
     struct rbNode *link[2];
 };
 
 struct rbNode *root = NULL;
 
-struct rbNode *createNode(int data)
+struct rbNode *createNode(User *data)
 {
     struct rbNode *newnode;
+
     newnode = (struct rbNode *) malloc(sizeof(struct rbNode));
     newnode->data = data;
     newnode->color = RED;
@@ -34,7 +63,19 @@ struct rbNode *createNode(int data)
     return newnode;
 }
 
-void insertion(int data)
+
+static int Total_User = 0, Total_Friendship_Records = 0, Total_Tweets = 0;
+static int User_index = 0;
+
+FILE *user_File = fopen("/Users/namnamnam/Desktop/KOREAUNIV_DS_03/ETC/user.utf8", "r");     //182     
+FILE *fren_File = fopen("/Users/namnamnam/Desktop/KOREAUNIV_DS_03/ETC/friend.utf8", "r");   //35,453 
+FILE *word_File = fopen("/Users/namnamnam/Desktop/KOREAUNIV_DS_03/ETC/word.utf8", "r");     //1,308
+
+User *user = (User *) malloc(sizeof(User));       //allocate User
+char *str = (char *) malloc(sizeof(char) * LEN);
+
+
+void insertion(User *data)
 {
     struct rbNode *stack[98], *ptr, *newnode, *xPtr, *yPtr;
     int dir[98], ht = 0, index;
@@ -46,21 +87,25 @@ void insertion(int data)
     }
     stack[ht] = root;
     dir[ht++] = 0;
-    /* find the place to insert the new node */
+    
     while (ptr != NULL)
     {
-        if (ptr->data == data)
+        if (ptr->data->idNumber == data->idNumber)
         {
             printf("Duplicates Not Allowed!!\n");
             return;
         }
-        index = (data - ptr->data) > 0 ? 1 : 0;
+        index = (data->idNumber - ptr->data->idNumber) > 0 ? 1 : 0;
         stack[ht] = ptr;
         ptr = ptr->link[index];
         dir[ht++] = index;
     }
+    
     /* insert the new node */
     stack[ht - 1]->link[index] = newnode = createNode(data);
+    
+    
+    
     while ((ht >= 3) && (stack[ht - 1]->color == RED))
     {
         if (dir[ht - 2] == 0)
@@ -198,7 +243,7 @@ void insertion(int data)
     root->color = BLACK;
 }
 
-void deletion(int data)
+void deletion(User *data)
 {
     struct rbNode *stack[98], *ptr, *xPtr, *yPtr;
     struct rbNode *pPtr, *qPtr, *rPtr;
@@ -215,9 +260,9 @@ void deletion(int data)
     /* search the node to delete */
     while (ptr != NULL)
     {
-        if ((data - ptr->data) == 0)
+        if ((data->idNumber - ptr->data->idNumber) == 0)
             break;
-        diff = (data - ptr->data) > 0 ? 1 : 0;
+        diff = (data->idNumber - ptr->data->idNumber) > 0 ? 1 : 0;
         stack[ht] = ptr;
         dir[ht++] = diff;
         ptr = ptr->link[diff];
@@ -477,14 +522,14 @@ void deletion(int data)
     }
 }
 
-void searchElement(int data)
+void searchElement(User *data)
 {
     struct rbNode *temp = root;
     int diff;
 
     while (temp != NULL)
     {
-        diff = data - temp->data;
+        diff = data->idNumber - temp->data->idNumber;
         if (diff > 0)
         {
             temp = temp->link[1];
@@ -506,356 +551,16 @@ void inorderTraversal(struct rbNode *node)
     if (node)
     {
         inorderTraversal(node->link[0]);
-        printf("%d  ", node->data);
+        printf("\n%d\n%s%s\n", node->data->idNumber, node->data->sign_up_date, node->data->screen_name);
         inorderTraversal(node->link[1]);
     }
     return;
 }
 
 
-// RedBlackTree
-/////////////////////////////////////////////////////////////////////////////////////
 
 
-typedef struct Adj
-{
-    int n;
-    struct Adj *next;
-} Adj;
-
-typedef struct
-{
-    int color;
-    int parent;
-    char name[10];
-    int n;
-    Adj *first;
-} Vertex;
-
-typedef struct
-{
-    Vertex super;
-    double d;
-} BFSVertex;
-
-typedef struct
-{
-    Vertex super;
-    int dfs_in, dfs_out;
-} DFSVertex;
-
-typedef struct
-{
-    int front;
-    int rear;
-    int sz;
-    int *buf;
-} Queue;
-
-typedef char *Data;
-
-typedef struct _list
-{
-    Data data;
-    struct _list *next;
-} Node;
-
-typedef struct _linkedList
-{
-    Node *head;
-    Node *tail;
-    Node *cur;
-
-    int numOfData;
-} LinkedList;
-
-typedef LinkedList List;
-
-typedef struct _user
-{
-    int idNumber;
-    char sign_up_date[LEN];
-    char screen_name[LEN];
-
-    List tweet;
-    List aFriend;
-
-    //char tweetWord[1000][LEN];
-    //int aFriend[1000];
-
-    int tweetsNum;
-    int friendsNum;
-
-    struct _user *next;         // link friend
-} User;
-
-static int Total_User = 0, Total_Friendship_Records = 0, Total_Tweets = 0;
-static int User_index = 0;
-
-FILE *user_File = fopen("/Users/namnamnam/Desktop/KOREAUNIV_DS_03/ETC/user.utf8", "r");     //182     
-FILE *fren_File = fopen("/Users/namnamnam/Desktop/KOREAUNIV_DS_03/ETC/friend.utf8", "r");   //35,453 
-FILE *word_File = fopen("/Users/namnamnam/Desktop/KOREAUNIV_DS_03/ETC/word.utf8", "r");     //1,308
-User *user = (User *) malloc(sizeof(User));       //allocate User
-char *str = (char *) malloc(sizeof(char) * LEN);
-
-
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Graph Part
-
-void Adj_init(Adj *self)
-{
-    self->n = 0;
-    self->next = NULL;
-}
-
-void Vertex_init(Vertex *self)
-{
-    self->color = 0;
-    self->parent = -1;
-    strcpy(self->name, "(none)");
-    self->n = 0;
-    self->first = NULL;
-}
-
-void Vertex_add(Vertex *self, Vertex *v)
-{
-    Adj *a = (Adj *) malloc(sizeof(Adj));
-    a->n = v->n;
-    a->next = self->first;
-    self->first = a;
-}
-
-void BFSVertex_init(BFSVertex *self)
-{
-    Vertex_init(&self->super);
-    self->d = 1E10;
-}
-
-void DFSVertex_init(DFSVertex *self)
-{
-    Vertex_init(&self->super);
-    self->dfs_in = 0;
-    self->dfs_out = 0;
-}
-
-void Queue_init(Queue *self)
-{
-    self->front = 0;
-    self->rear = 0;
-    self->sz = 0;
-    self->buf = NULL;
-}
-
-void Queue_create_queue(Queue *self, int sz)
-{
-    self->sz = sz;
-    self->buf = (int *) malloc(sizeof(int) * sz);
-}
-
-void Queue_enqueue(Queue *self, int val)
-{
-    self->buf[self->rear] = val;
-    self->rear = (self->rear + 1) % self->sz;
-}
-
-int Queue_dequeue(Queue *self)
-{
-    int res = self->buf[self->front];
-    self->front = (self->front + 1) % self->sz;
-    return res;
-}
-
-int Queue_is_empty(Queue *self)
-{
-    return self->front == self->rear;
-}
-
-void print_bfsvertex(BFSVertex *vertices, int n)
-{
-    printf("%-8s ", vertices[n].super.name);
-    printf("%-8d ", vertices[n].super.color);
-    printf("%-8d ", vertices[n].super.parent);
-    printf("%-16.0f\t: ", vertices[n].d);
-    for (Adj *p = vertices[n].super.first; p; p = p->next)
-    {
-        printf("%s ", vertices[p->n].super.name);
-    }
-    printf("\n");
-}
-
-void print_dfsvertex(DFSVertex *vertices, int n)
-{
-    printf("%-8s ", vertices[n].super.name);
-    printf("%-8d ", vertices[n].super.color);
-    printf("%-8d ", vertices[n].super.parent);
-    printf("%-8d ", vertices[n].dfs_in);
-    printf("%-8d", vertices[n].dfs_out);
-
-    printf("   \t: ");
-
-    for (Adj *p = vertices[n].super.first; p; p = p->next)
-    {
-        printf("%s ", vertices[p->n].super.name);
-    }
-
-    printf("\n");
-}
-
-void bfs(BFSVertex *vertices, int nelem, int s)
-{
-    Queue q;
-    //Start from S
-    for (int u = 0; u < nelem; u++)
-    {
-        if (vertices[u].super.n != s)
-        {
-            vertices[u].super.color = WHITE;
-            vertices[u].d = 1E10;
-            vertices[u].super.parent = -1;
-        }
-    }
-    // Except for s, all init -1, White;
-
-
-    vertices[s].super.color = GRAY;
-    vertices[s].d = 0;
-    vertices[s].super.parent = -1;
-
-    Queue_init(&q);
-    Queue_create_queue(&q, nelem);
-    Queue_enqueue(&q, s);
-
-    while (!Queue_is_empty(&q))
-    {
-        int u = Queue_dequeue(&q);
-        for (Adj *adj_v = vertices[u].super.first; adj_v; adj_v = adj_v->next)
-        {
-            if (vertices[adj_v->n].super.color == WHITE)
-            {
-                vertices[adj_v->n].super.color = GRAY;
-                vertices[adj_v->n].d = vertices[u].d + 1;
-                vertices[adj_v->n].super.parent = u;
-                Queue_enqueue(&q, adj_v->n);
-            }
-        }
-        vertices[u].super.color = BLACK;
-    }
-
-    // (s), (w r), (x t v), (y u)
-}
-
-int dfs_time = 0;
-
-
-void dfs_visit(DFSVertex *vertices, int nelem, int u)
-{
-    dfs_time++;
-    vertices[u].dfs_in = dfs_time;
-    vertices[u].super.color = GRAY;
-    for (Adj *v = vertices[u].super.first; v; v = v->next)
-    {
-        if (vertices[v->n].super.color == WHITE)
-        {
-            vertices[v->n].super.parent = u;
-            dfs_visit(vertices, nelem, v->n);
-        }
-    }
-    vertices[u].super.color = BLACK;
-    dfs_time++;
-    vertices[u].dfs_out = dfs_time;
-}
-
-void dfs(DFSVertex *vertices, int nelem)
-{
-    for (int u = 0; u < nelem; u++)
-    {
-        vertices[u].super.color = WHITE;
-        vertices[u].super.parent = -1;
-    }
-    dfs_time = 0;
-    for (int u = 0; u < nelem; u++)
-    {
-        if (vertices[u].super.n == WHITE)
-        {
-            dfs_visit(vertices, nelem, u);
-        }
-    }
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// User Part
-
-void Interface()
-{
-    puts("0. Read data files");
-    puts("1. display statistics");
-    puts("2. Top 5 most tweeted words");
-    puts("3. Top 5 most tweeted users");
-    puts("4. Find users who tweeted a word (e.g., ’연세대’)");
-    puts("5. Find all people who are friends of the above users");
-    puts("6. Delete users who mentioned a word");
-    puts("7. Delete all users who mentioned a word");
-    puts("8. Find strongly connected components");
-    puts("9. Find shortest path from a given user");
-    puts("99. Quit");
-    printf("Select Menu: ");
-}
-
-void InitUser(User *user)
-{
-    user->idNumber = -1;
-
-    user->friendsNum = 0;
-    user->tweetsNum = 0;
-
-    strcpy(user->sign_up_date, "Dummy User");
-    strcpy(user->screen_name, "Dummy User");
-
-    user->next = NULL;      // no linked friend
-}
-
-void AddUser(User *user, int id, char *date, char *name)
-{
-    user->idNumber = id;
-    strcpy(user->sign_up_date, date);
-    strcpy(user->screen_name, name);
-}
-
-void AddFriend(User *main_User, User *add_User)     // AddTail
-{
-    if (main_User->next == NULL)
-        main_User->next = add_User;
-
-    else
-    {
-        User *cur = main_User->next;
-
-        while (cur->next != NULL)
-            cur = cur->next;
-
-        cur->next = add_User;
-    }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// List Part
-
+/*
 void InitList(List *list)
 {
     list = (List *) malloc(sizeof(List));
@@ -1015,34 +720,47 @@ Data DeleteSpecData(List *list, Data data)
     return delData;
 }
 
-Data HeadData(List *list)
+*/
+
+void GetTheUserNum();
+void GetFriendShipNum();
+void GetTweetsNum();
+
+
+int main(void)
 {
-    if (IsListEmpty(list))
-        return FALSE;
-    return list->head->data;
+    
+    GetTheUserNum();
+    GetFriendShipNum();
+    GetTweetsNum();
+
+
+    for (int i = 0; i < User_index; i++)
+        insertion((user + i));
+
+    inorderTraversal(root);
+
+    NewLine
+
+    printf("--------------------------------\n");
+
+    for (int i = 0; i < User_index; i++)
+        printf("\n%d\n%s%s", (user + i)->idNumber, (user + i)->sign_up_date, (user + i)->screen_name);
+
+
+    //do { Interface(); } while (Process());
+
+    //printf("%d\n\n", user->tweetsNum);
+
+    return 0;
 }
 
-Data TailData(List *list)
-{
-    if (IsListEmpty(list))
-        return FALSE;
-    return list->tail->data;
-}
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
-
-
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Get each part
-
-void GetTheUserNum(User *user, FILE *user_File, char *str)
+void GetTheUserNum()
 {
     int index = 0;
 
@@ -1080,7 +798,7 @@ void GetTheUserNum(User *user, FILE *user_File, char *str)
     Total_User = User_index + 1;                        // Struct group(One User) consists 4 lines
 }
 
-void GetFriendShipNum(User *user, FILE *fren_File, char *str)
+void GetFriendShipNum()
 {
     while (fgets(str, LEN, fren_File))
     {
@@ -1089,17 +807,11 @@ void GetFriendShipNum(User *user, FILE *fren_File, char *str)
     Total_Friendship_Records /= 3;
 }
 
-void GetTweetsNum(User *user, FILE *word_File, char *str)
+void GetTweetsNum()
 {
     int index = 0;
     int userIndex = 0;
     int i;
-
-    for (i = 0; i < User_index; i++)
-    {
-        InitList(&(user + i)->tweet);
-        (user + i)->tweet.numOfData = 0;
-    }
 
     userIndex = 0;
     while (fgets(str, LEN, word_File))
@@ -1131,7 +843,6 @@ void GetTweetsNum(User *user, FILE *word_File, char *str)
 
         else if (index == 2)
         {
-            AddData_Tail(&(user + userIndex)->tweet, str);
             index++;
         }
 
@@ -1141,11 +852,22 @@ void GetTweetsNum(User *user, FILE *word_File, char *str)
     Total_Tweets /= 4;
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
+void Interface()
+{
+    puts("0. Read data files");
+    puts("1. display statistics");
+    puts("2. Top 5 most tweeted words");
+    puts("3. Top 5 most tweeted users");
+    puts("4. Find users who tweeted a word (e.g., ’연세대’)");
+    puts("5. Find all people who are friends of the above users");
+    puts("6. Delete users who mentioned a word");
+    puts("7. Delete all users who mentioned a word");
+    puts("8. Find strongly connected components");
+    puts("9. Find shortest path from a given user");
+    puts("99. Quit");
+    printf("Select Menu: ");
+}
 
 
 void ReadTheDataFile()
@@ -1204,64 +926,3 @@ int Process()
     return TRUE;
 }
 
-
-
-
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Main Part
-
-int main(void)
-{
-    /*InitUser(user);
-
-    GetTheUserNum(user, user_File, str);
-    GetFriendShipNum(user, fren_File, str);
-    GetTweetsNum(user, word_File, str);
-
-    do { Interface(); } while (Process());
-
-    printf("%d\n\n", user->tweetsNum);
-*/
-
-    int ch, data;
-    while (1) {
-        printf("1. Insertion\t2. Deletion\n");
-        printf("3. Searching\t4. Traverse\n");
-        printf("5. Exit\nEnter your choice:");
-        scanf("%d", &ch);
-        switch (ch) {
-            case 1:
-                printf("Enter the data to insert:");
-                scanf("%d", &data);
-                insertion(data);
-                break;
-            case 2:
-                printf("Enter the data to delete:");
-                scanf("%d", &data);
-                deletion(data);
-                break;
-            case 3:
-                printf("Enter the search element:");
-                scanf("%d", &data);
-                searchElement(data);
-                break;
-            case 4:
-                inorderTraversal(root);
-                printf("\n");
-                break;
-            case 5:
-                exit(0);
-            default:
-                printf("You have entered wrong option!!\n");
-                break;
-        }
-        printf("\n");
-    }
-
-    return 0;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
