@@ -13,22 +13,24 @@ enum nodeColor
     BLACK
 };
 
-typedef char Data;
+typedef char *Data;
 
 typedef struct _node
 {
-    Data data[LEN];
+    char *data;
+    int idNum;
+
     struct _node *next;
-}Node;
+} Node;
 
 typedef struct _list
 {
     Node *head;
     Node *cur;
     Node *tail;
-    
+
     int numOfData;
-}List;
+} List;
 
 
 typedef struct _user
@@ -39,6 +41,9 @@ typedef struct _user
 
     int tweetsNum;
     int friendsNum;
+
+    List *tweet_Word;
+    List *friendShip;
 
     struct _user *next;         // link friend
 } User;
@@ -74,6 +79,8 @@ FILE *word_File = fopen("/Users/namnamnam/Desktop/KOREAUNIV_DS_03/ETC/word.utf8"
 User *user = (User *) malloc(sizeof(User));       //allocate User
 char *str = (char *) malloc(sizeof(char) * LEN);
 
+List *tweet = (List *) malloc(sizeof(List));
+List *aFriend = (List *) malloc(sizeof(List));
 
 void insertion(User *data)
 {
@@ -87,7 +94,7 @@ void insertion(User *data)
     }
     stack[ht] = root;
     dir[ht++] = 0;
-    
+
     while (ptr != NULL)
     {
         if (ptr->data->idNumber == data->idNumber)
@@ -100,12 +107,11 @@ void insertion(User *data)
         ptr = ptr->link[index];
         dir[ht++] = index;
     }
-    
+
     /* insert the new node */
     stack[ht - 1]->link[index] = newnode = createNode(data);
-    
-    
-    
+
+
     while ((ht >= 3) && (stack[ht - 1]->color == RED))
     {
         if (dir[ht - 2] == 0)
@@ -558,9 +564,6 @@ void inorderTraversal(struct rbNode *node)
 }
 
 
-
-
-/*
 void InitList(List *list)
 {
     list = (List *) malloc(sizeof(List));
@@ -580,13 +583,14 @@ int IsListEmpty(List *list)
         return FALSE;
 }
 
-void AddData_Head(List *list, Data data)
+void AddData_Head(List *list, Data data, int id)
 {
     Node *addNode = (Node *) malloc(sizeof(Node));
-    addNode->data = (char *) malloc(sizeof(char) * LEN);
-
+    addNode->data = (Data)malloc(sizeof(char)*LEN);
+    addNode->idNum = id;
     addNode->next = NULL;
-    addNode->data = data;
+    
+    strcpy(addNode->data, data);
 
     if (IsListEmpty(list))
     {
@@ -605,10 +609,10 @@ void AddData_Head(List *list, Data data)
 void AddData_Tail(List *list, Data data)
 {
     Node *addNode = (Node *) malloc(sizeof(Node));
-    addNode->data = (char *) malloc(sizeof(char) * LEN);
 
     addNode->next = NULL;
-    addNode->data = data;
+    strcpy((char *) addNode->data, data);
+
 
     if (IsListEmpty(list))
     {
@@ -634,7 +638,7 @@ Data DeleteData_Head(List *list)
         return FALSE;
 
     deleteNode = list->head;
-    delData = list->head->data;
+    delData = (char *) list->head->data;
     list->head = list->head->next;
 
     free(deleteNode);
@@ -652,7 +656,7 @@ Data DeleteData_Tail(List *list)
         return FALSE;
 
     delNode = list->tail;
-    delData = list->tail->data;
+    delData = (char *) list->head->data;
 
     list->cur = list->head;
     while (list->cur->next != list->tail)
@@ -679,23 +683,23 @@ Data DeleteSpecData(List *list, Data data)
     else if (list->numOfData == 1)
     {
         delNode = list->head;
-        delData = list->head->data;
+        delData = (char *) list->head->data;
 
         list->head = NULL;
         list->tail = NULL;
     }
 
-    else if (list->cur->data == data)
+    else if (!strcmp((char *) list->cur->data, data))
     {
         delNode = list->cur;
-        delData = list->cur->data;
+        delData = (char *) list->head->data;
 
         list->head = list->head->next;
     }
 
     else
     {
-        while (list->cur != NULL && list->cur->data != data)
+        while (list->cur != NULL && !strcmp((char *) list->cur->data, data))
             list->cur = list->cur->next;
 
         if (list->cur == NULL)
@@ -706,7 +710,7 @@ Data DeleteSpecData(List *list, Data data)
             before = before->next;
 
         delNode = list->cur;
-        delData = list->cur->data;
+        delData = (char *) list->cur->data;
 
         if (list->cur == list->tail)
             list->tail = before;
@@ -720,45 +724,19 @@ Data DeleteSpecData(List *list, Data data)
     return delData;
 }
 
-*/
-
-void GetTheUserNum();
-void GetFriendShipNum();
-void GetTweetsNum();
-
-
-int main(void)
+void TweetWord_IDnum_Traverse(List *list)
 {
-    
-    GetTheUserNum();
-    GetFriendShipNum();
-    GetTweetsNum();
+    list->cur = list->head;
 
+    while (list->cur != NULL)
+    {
+        printf("%d \n", list->cur->idNum);
+        list->cur = list->cur->next;
+    }
 
-    for (int i = 0; i < User_index; i++)
-        insertion((user + i));
-
-    inorderTraversal(root);
-
-    NewLine
-
-    printf("--------------------------------\n");
-
-    for (int i = 0; i < User_index; i++)
-        printf("\n%d\n%s%s", (user + i)->idNumber, (user + i)->sign_up_date, (user + i)->screen_name);
-
-
-    //do { Interface(); } while (Process());
-
-    //printf("%d\n\n", user->tweetsNum);
-
-    return 0;
+    return;
 }
 
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void GetTheUserNum()
 {
@@ -800,10 +778,38 @@ void GetTheUserNum()
 
 void GetFriendShipNum()
 {
+    int index = 0;
+    int userIndex = 0;
+
     while (fgets(str, LEN, fren_File))
     {
+        if (strcmp(str, "\n") == 0 || strcmp(str, "\r\n") == 0)
+        {
+            Total_Friendship_Records++;
+            continue;
+        }
+
+        if (index == 3) { index = 0; }
+
+        if (index == 0)
+        {
+
+            index++;
+        }
+        else if (index == 1)
+        {
+
+            index++;
+        }
+
+        else if (index == 2)
+        {
+            index++;
+        }
+
         Total_Friendship_Records++;
     }
+
     Total_Friendship_Records /= 3;
 }
 
@@ -843,6 +849,7 @@ void GetTweetsNum()
 
         else if (index == 2)
         {
+            AddData_Head(tweet, str, (user + User_index)->idNumber);
             index++;
         }
 
@@ -852,6 +859,141 @@ void GetTweetsNum()
     Total_Tweets /= 4;
 }
 
+int Partition(int name[], int A[], int p, int r)
+{
+    int x = A[r];
+    int i = p - 1;
+    int j, temp;
+
+    for (j = p; j < r; j++)
+    {
+        if (A[j] <= x)
+        {
+            i++;
+            temp = A[j];
+            A[j] = A[i];
+            A[i] = temp;
+
+            temp = name[j];
+            name[j] = name[i];
+            name[i] = temp;
+        }
+    }
+
+    temp = A[i + 1];
+    A[i + 1] = A[r];
+    A[r] = temp;
+
+    temp = name[i + 1];
+    name[i + 1] = name[r];
+    name[r] = temp;
+
+    return i + 1;
+}
+
+void QuickSort(int name[], int A[], int p, int r)
+{
+    if (p < r)
+    {
+        int q = Partition(name, A, p, r);
+        QuickSort(name, A, p, q - 1);
+        QuickSort(name, A, q + 1, r);
+    }
+}
+
+void Print_Top5_Most_Tweeted_User()
+{
+    int arr[User_index];
+    int name[User_index];
+    int n = User_index - 1;
+
+    printf("%s\n\n","3. Top 5 most tweeted users");
+    
+
+    for (int i = 0; i < User_index; i++)
+    {
+        arr[i] = (user + i)->tweetsNum;
+        name[i] = (user + i)->idNumber;
+    }
+
+    QuickSort(name, arr, 0, User_index - 1);
+
+    printf("\t\t%s:    %s\n\n", "idNumber", "tweetsNumber");
+    while (n >= User_index - 5)
+    {
+        printf("\t\t%8d:    %5d\n", name[n], arr[n]);
+        n--;
+    }
+
+    NewLine
+}
+
+int Word_Partition(char word[Total_Tweets][LEN], int p, int r)
+{
+    char *x = (char*)malloc(sizeof(char)*LEN);
+    char *temp;
+    int i=p-1;
+    int j;
+
+    strcpy(x, word[0]);
+    
+    for(j=p; j<r; j++)
+    {
+        if(strcmp(word[j], x) >= 0)
+        {
+            i++;
+            
+            temp = word[j];
+            strcpy(word[j], word[i]);
+            strcpy(word[i], temp);
+        }
+    }
+    
+    temp = word[i+1];
+    strcpy(word[i+1], word[r]);
+    strcpy(word[r], temp);
+
+    return i+1; 
+}
+
+void WordQuickSort(char word[Total_Tweets][LEN], int p, int r)
+{
+    if(p < r)
+    {
+        int q = Word_Partition(word, p, q);
+        Word_Partition(word, p, q-1);
+        Word_Partition(word, q+1, r);
+    }
+}
+
+void Print_Top5_Most_Tweeted_Word()
+{
+    char word[Total_Tweets][LEN];
+    int n = Total_Tweets;
+    int i=0;
+    
+    tweet->cur = tweet->head;
+    
+    while(tweet->cur != NULL)
+    {
+        strcpy(word[i], tweet->cur->data);
+        i++;
+        tweet->cur = tweet->cur->next;
+    }//strcpy(word[i++], (const char *) tweet->cur->data);
+
+    for(i=0; i<n; i++)
+        printf("%s ", word[i]);
+    
+    NewLine
+    NewLine
+    NewLine
+    NewLine
+    
+    WordQuickSort(word, 0, n-1);
+    
+    for(i=0; i<n; i++)
+        printf("%s ", word[i]);
+}
 
 void Interface()
 {
@@ -900,9 +1042,11 @@ int Process()
             Maximu tweets per user: xxx*/
 
         case 2:
-
+            Print_Top5_Most_Tweeted_User();
+            break;
         case 3:
-
+            Print_Top5_Most_Tweeted_Word();
+            break;
         case 4:
 
         case 5:
@@ -925,4 +1069,41 @@ int Process()
     }
     return TRUE;
 }
+
+
+int main(void)
+{
+
+    GetTheUserNum();
+    GetFriendShipNum();
+    GetTweetsNum();
+
+
+    for (int i = 0; i < User_index; i++)
+        insertion((user + i));
+
+    //inorderTraversal(root);
+
+    
+    /*for (int i = 0; i < User_index; i++)
+        printf("\n%d\n%s%s", (user + i)->idNumber, (user + i)->sign_up_date, (user + i)->screen_name);*/
+    
+    do { Interface(); } while (Process());
+
+    NewLine
+
+    /*while (!IsListEmpty(tweet))
+    {
+        printf("  %s \n", DeleteData_Head(tweet));
+    }*/
+
+
+    return 0;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
