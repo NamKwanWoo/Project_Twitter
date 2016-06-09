@@ -76,11 +76,14 @@ FILE *user_File = fopen("/Users/namnamnam/Desktop/KOREAUNIV_DS_03/ETC/user.utf8"
 FILE *fren_File = fopen("/Users/namnamnam/Desktop/KOREAUNIV_DS_03/ETC/friend.utf8", "r");   //35,453 
 FILE *word_File = fopen("/Users/namnamnam/Desktop/KOREAUNIV_DS_03/ETC/word.utf8", "r");     //1,308
 
-User *user = (User *) malloc(sizeof(User));       //allocate User
+User *user = (User *) malloc(sizeof(User) * 1000);       //allocate User
 char *str = (char *) malloc(sizeof(char) * LEN);
 
 List *tweet = (List *) malloc(sizeof(List));
+List *tweetTogether_IDnum = (List*)malloc(sizeof(List));
 List *aFriend = (List *) malloc(sizeof(List));
+
+
 
 void insertion(User *data)
 {
@@ -586,10 +589,10 @@ int IsListEmpty(List *list)
 void AddData_Head(List *list, Data data, int id)
 {
     Node *addNode = (Node *) malloc(sizeof(Node));
-    addNode->data = (Data)malloc(sizeof(char)*LEN);
+    addNode->data = (Data) malloc(sizeof(char) * LEN);
     addNode->idNum = id;
     addNode->next = NULL;
-    
+
     strcpy(addNode->data, data);
 
     if (IsListEmpty(list))
@@ -737,7 +740,6 @@ void TweetWord_IDnum_Traverse(List *list)
     return;
 }
 
-
 void GetTheUserNum()
 {
     int index = 0;
@@ -828,7 +830,10 @@ void GetTweetsNum()
             continue;
         }
 
-        if (index == 3) { index = 0; }
+        if (index == 3)
+        {
+            index = 0;
+        }
 
         if (index == 0)
         {
@@ -843,6 +848,9 @@ void GetTweetsNum()
 
                 (user + userIndex)->tweetsNum++;
             }
+
+            AddData_Head(tweetTogether_IDnum, str, (user + userIndex)->idNumber);
+                    
             index++;
         }
         else if (index == 1) { index++; }
@@ -901,14 +909,16 @@ void QuickSort(int name[], int A[], int p, int r)
     }
 }
 
+/*Quicsort takes O(n*logn)*/
+/*change with idNum*/
 void Print_Top5_Most_Tweeted_User()
 {
     int arr[User_index];
     int name[User_index];
     int n = User_index - 1;
 
-    printf("%s\n\n","3. Top 5 most tweeted users");
-    
+    printf("%s\n\n", "3. Top 5 most tweeted users");
+
 
     for (int i = 0; i < User_index; i++)
     {
@@ -928,71 +938,59 @@ void Print_Top5_Most_Tweeted_User()
     NewLine
 }
 
-int Word_Partition(char word[Total_Tweets][LEN], int p, int r)
+/*BubbleSort takes O(n^2)*/
+/*change with idNumber together*/
+void BubbleSort(char str[][LEN], int A[Total_Tweets], int n)
 {
-    char *x = (char*)malloc(sizeof(char)*LEN);
-    char *temp;
-    int i=p-1;
-    int j;
+    int i, j;
+    char *temp = (char *) malloc(sizeof(char) * 100);
+    int numTemp;
 
-    strcpy(x, word[0]);
-    
-    for(j=p; j<r; j++)
-    {
-        if(strcmp(word[j], x) >= 0)
-        {
-            i++;
-            
-            temp = word[j];
-            strcpy(word[j], word[i]);
-            strcpy(word[i], temp);
-        }
-    }
-    
-    temp = word[i+1];
-    strcpy(word[i+1], word[r]);
-    strcpy(word[r], temp);
-
-    return i+1; 
-}
-
-void WordQuickSort(char word[Total_Tweets][LEN], int p, int r)
-{
-    if(p < r)
-    {
-        int q = Word_Partition(word, p, q);
-        Word_Partition(word, p, q-1);
-        Word_Partition(word, q+1, r);
-    }
+    for (i = 0; i < n - 1; i++)
+        for (j = 0; j < (n - 1) - i; j++)
+            if (strcmp(str[j], str[j + 1]) > 0)
+            {
+                strcpy(temp, str[j]);
+                numTemp = A[j];
+                
+                strcpy(str[j], str[j + 1]);
+                strcpy(str[j + 1], temp);
+                
+                A[j] = A[j+1];
+                A[j+1] = numTemp;
+            }
+    free(temp);
+    return;
 }
 
 void Print_Top5_Most_Tweeted_Word()
 {
     char word[Total_Tweets][LEN];
+    int idNum[Total_Tweets];
+
     int n = Total_Tweets;
-    int i=0;
-    
+    int i = 0;
+
     tweet->cur = tweet->head;
+    tweetTogether_IDnum->cur = tweetTogether_IDnum->head;
     
-    while(tweet->cur != NULL)
+    /*list traverse  takes O(n)*/
+    /*takes two array, 1) Word 2) Who tweeted that word*/
+    while (tweet->cur != NULL && tweetTogether_IDnum->cur != NULL)
     {
         strcpy(word[i], tweet->cur->data);
+        idNum[i] = tweetTogether_IDnum->cur->idNum;
+        
         i++;
         tweet->cur = tweet->cur->next;
-    }//strcpy(word[i++], (const char *) tweet->cur->data);
-
-    for(i=0; i<n; i++)
-        printf("%s ", word[i]);
+        tweetTogether_IDnum->cur = tweetTogether_IDnum->cur->next;
+    }
     
-    NewLine
-    NewLine
-    NewLine
-    NewLine
+    /*Sort to use counting working easily*/ 
+    BubbleSort(word, idNum, n);
     
-    WordQuickSort(word, 0, n-1);
     
-    for(i=0; i<n; i++)
-        printf("%s ", word[i]);
+    
 }
 
 void Interface()
@@ -1010,7 +1008,6 @@ void Interface()
     puts("99. Quit");
     printf("Select Menu: ");
 }
-
 
 void ReadTheDataFile()
 {
@@ -1084,10 +1081,10 @@ int main(void)
 
     //inorderTraversal(root);
 
-    
+
     /*for (int i = 0; i < User_index; i++)
         printf("\n%d\n%s%s", (user + i)->idNumber, (user + i)->sign_up_date, (user + i)->screen_name);*/
-    
+
     do { Interface(); } while (Process());
 
     NewLine
