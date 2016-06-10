@@ -32,7 +32,6 @@ typedef struct _list
     int numOfData;
 } List;
 
-
 typedef struct _user
 {
     int idNumber;
@@ -42,7 +41,7 @@ typedef struct _user
     int tweetsNum;
     int friendsNum;
 
-    List *tweet_Word;
+    List tweet_Word;
     List *friendShip;
 
     struct _user *next;         // link friend
@@ -80,9 +79,8 @@ User *user = (User *) malloc(sizeof(User) * 1000);       //allocate User
 char *str = (char *) malloc(sizeof(char) * LEN);
 
 List *tweet = (List *) malloc(sizeof(List));
-List *tweetTogether_IDnum = (List*)malloc(sizeof(List));
+List *tweetTogether_IDnum = (List *) malloc(sizeof(List));
 List *aFriend = (List *) malloc(sizeof(List));
-
 
 
 void insertion(User *data)
@@ -531,28 +529,26 @@ void deletion(User *data)
     }
 }
 
-void searchElement(User *data)
+void AddData_Head(List *, char*, int );
+
+User* searchElement(int main_ID)
 {
     struct rbNode *temp = root;
-    int diff;
+    int diff = 0;
 
     while (temp != NULL)
     {
-        diff = data->idNumber - temp->data->idNumber;
+        diff = main_ID - temp->data->idNumber;
         if (diff > 0)
-        {
             temp = temp->link[1];
-        } else if (diff < 0)
-        {
+        else if (diff < 0)
             temp = temp->link[0];
-        } else
-        {
-            printf("Search Element Found!!\n");
-            return;
-        }
+        else
+            return temp->data;
     }
+
     printf("Given Data Not Found in RB Tree!!\n");
-    return;
+    return NULL;
 }
 
 void inorderTraversal(struct rbNode *node)
@@ -560,7 +556,8 @@ void inorderTraversal(struct rbNode *node)
     if (node)
     {
         inorderTraversal(node->link[0]);
-        printf("\n%d\n%s%s\n", node->data->idNumber, node->data->sign_up_date, node->data->screen_name);
+        //printf("\n%d\n%s%s\n", node->data->idNumber, node->data->sign_up_date, node->data->screen_name);
+        printf("%d\n", node->data->idNumber);
         inorderTraversal(node->link[1]);
     }
     return;
@@ -782,6 +779,11 @@ void GetFriendShipNum()
 {
     int index = 0;
     int userIndex = 0;
+    int mainFriend = 0, subFriend = 0;
+    
+    /*Initiation all the user tweet list*/ 
+    for(int i=0; i<User_index; i++)
+        InitList(&(user+i)->tweet_Word);
 
     while (fgets(str, LEN, fren_File))
     {
@@ -795,11 +797,24 @@ void GetFriendShipNum()
 
         if (index == 0)
         {
-
+            /*it takes O(logN)*/
+            /*because RB-Tree is a Balanced Tree*/
+            mainFriend = atoi(str);
             index++;
         }
         else if (index == 1)
         {
+            /*it takes O(logN)*/
+            /*because RB-Tree is a Balanced Tree*/
+            subFriend = atoi(str);
+
+            User *temp = searchElement(mainFriend);
+            AddData_Head(&temp->tweet_Word, NULL, subFriend);
+            
+            /*while ((user + i)->idNumber != mainFriend)
+                i++;
+
+            AddData_Head(&(user + i)->tweet_Word, str, subFriend);*/
 
             index++;
         }
@@ -850,7 +865,7 @@ void GetTweetsNum()
             }
 
             AddData_Head(tweetTogether_IDnum, str, (user + userIndex)->idNumber);
-                    
+
             index++;
         }
         else if (index == 1) { index++; }
@@ -919,7 +934,6 @@ void Print_Top5_Most_Tweeted_User()
 
     printf("%s\n\n", "3. Top 5 most tweeted users");
 
-
     for (int i = 0; i < User_index; i++)
     {
         arr[i] = (user + i)->tweetsNum;
@@ -931,7 +945,7 @@ void Print_Top5_Most_Tweeted_User()
     printf("\t\t%s:    %s\n\n", "idNumber", "tweetsNumber");
     while (n >= User_index - 5)
     {
-        printf("\t\t%8d:    %5d\n", name[n], arr[n]);
+        printf("\t\t%10d:    %5d\n", name[n], arr[n]);
         n--;
     }
 
@@ -952,12 +966,12 @@ void BubbleSort(char str[][LEN], int A[Total_Tweets], int n)
             {
                 strcpy(temp, str[j]);
                 numTemp = A[j];
-                
+
                 strcpy(str[j], str[j + 1]);
                 strcpy(str[j + 1], temp);
-                
-                A[j] = A[j+1];
-                A[j+1] = numTemp;
+
+                A[j] = A[j + 1];
+                A[j + 1] = numTemp;
             }
     free(temp);
     return;
@@ -967,30 +981,76 @@ void Print_Top5_Most_Tweeted_Word()
 {
     char word[Total_Tweets][LEN];
     int idNum[Total_Tweets];
-
     int n = Total_Tweets;
     int i = 0;
 
     tweet->cur = tweet->head;
     tweetTogether_IDnum->cur = tweetTogether_IDnum->head;
-    
+
     /*list traverse  takes O(n)*/
     /*takes two array, 1) Word 2) Who tweeted that word*/
     while (tweet->cur != NULL && tweetTogether_IDnum->cur != NULL)
     {
         strcpy(word[i], tweet->cur->data);
         idNum[i] = tweetTogether_IDnum->cur->idNum;
-        
+
         i++;
         tweet->cur = tweet->cur->next;
         tweetTogether_IDnum->cur = tweetTogether_IDnum->cur->next;
     }
-    
-    /*Sort to use counting working easily*/ 
+
+    /*Sort to use counting working easily*/
     BubbleSort(word, idNum, n);
-    
-    
-    
+
+    for (i = 0; i < n; i++)
+    {
+        printf("%d: \t%s\n", idNum[i], word[i]);
+    }
+}
+
+void Print_Statistics()
+{
+    // 1. Statistics
+    /*Average number of friends: xxx
+    Minimum friends: xxx
+    Maximum number of friends: xxx
+     
+    Average tweets per user: xxx
+    Minium tweets per user: xxx
+    Maximu tweets per user: xxx*/
+
+    int avg_Tweet = 0;
+    int min_Tweet = user->tweetsNum, max_Tweet = user->tweetsNum;
+    int min_ID = 0, max_ID = 0;
+    int i, key;
+
+    for (i = 0; i < Total_User; i++)
+    {
+        key = (user + i)->tweetsNum;
+
+        /*The case that get the min tweet user*/
+        if (min_Tweet > key)
+        {
+            min_Tweet = key;
+            min_ID = (user + i)->idNumber;
+        }
+
+        /*The case that get the max tweet user*/
+        if (max_Tweet < key)
+        {
+            max_Tweet = key;
+            max_ID = (user + i)->idNumber;
+        }
+
+        avg_Tweet += key;
+    }
+    avg_Tweet /= Total_User;
+
+    printf("Average tweets per user: %d\n", avg_Tweet);
+    printf("Minium tweets per user: %d -> %d\n", min_ID, min_Tweet);
+    printf("Maximum tweets per user: %d -> %d\n", max_ID, max_Tweet);
+    NewLine
+
 }
 
 void Interface()
@@ -1028,16 +1088,9 @@ int Process()
         case 0:
             ReadTheDataFile();
             break;
-
         case 1:
-            // 1. Statistics
-            /*Average number of friends: xxx
-            Minimum friends: xxx
-            Maximum number of friends: xxx
-            Average tweets per user: xxx
-            Minium tweets per user: xxx
-            Maximu tweets per user: xxx*/
-
+            Print_Statistics();
+            break;
         case 2:
             Print_Top5_Most_Tweeted_User();
             break;
@@ -1070,20 +1123,19 @@ int Process()
 
 int main(void)
 {
-
     GetTheUserNum();
-    GetFriendShipNum();
-    GetTweetsNum();
-
 
     for (int i = 0; i < User_index; i++)
         insertion((user + i));
 
-    //inorderTraversal(root);
+    GetFriendShipNum();
+    GetTweetsNum();
 
 
-    /*for (int i = 0; i < User_index; i++)
-        printf("\n%d\n%s%s", (user + i)->idNumber, (user + i)->sign_up_date, (user + i)->screen_name);*/
+
+    /*This rood has struct which are sorted by idNum*/
+    inorderTraversal(root);
+    NewLine
 
     do { Interface(); } while (Process());
 
