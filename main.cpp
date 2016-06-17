@@ -530,23 +530,23 @@ void deletion(User *data)
     }
 }
 
-void AddData_Head(List *, char*, int );
+void AddData_Head(List *, char *, int);
 
-User* searchElement(int main_ID)
+User *searchElement(int main_ID)
 {
     struct rbNode *temp = root;
     int diff = 0;
 
     while (temp != NULL)
     {
-        diff = main_ID - temp->data->idNumber ;
-        
+        diff = main_ID - temp->data->idNumber;
+
         if (diff > 0)
             temp = temp->link[1];
-            
+
         else if (diff < 0)
             temp = temp->link[0];
-            
+
         else
             return temp->data;
     }
@@ -594,7 +594,7 @@ void AddData_Head(List *list, Data data, int id)
     addNode->idNum = id;
     addNode->next = NULL;
 
-    if(data != NULL)
+    if (data != NULL)
         strcpy(addNode->data, data);
 
     if (IsListEmpty(list))
@@ -735,9 +735,10 @@ void TweetWord_IDnum_Traverse(List *list)
 
     while (list->cur != NULL)
     {
-        printf("%d \n", list->cur->idNum);
+        printf("%d -> ", list->cur->idNum);
         list->cur = list->cur->next;
     }
+    printf("\n");
 
     return;
 }
@@ -753,7 +754,6 @@ void GetTheUserNum()
 
         if (index == 3)
         {
-            printf("%d -> %s -> %s \n", (user+User_index)->idNumber, (user+User_index)->sign_up_date, (user+User_index)->screen_name);
             User_index++;
             index = 0;
         }
@@ -786,10 +786,10 @@ void GetFriendShipNum()
     int index = 0;
     int userIndex = 0;
     int mainFriend = 0, subFriend = 0;
-    
-    /*Initiation all the user tweet list*/ 
-    for(int i=0; i<User_index; i++)
-        InitList(&(user+i)->friendShip);
+
+    /*Initiation all the user tweet list*/
+    for (int i = 0; i < User_index; i++)
+        InitList(&(user + i)->friendShip);
 
     while (fgets(str, LEN, fren_File))
     {
@@ -805,26 +805,26 @@ void GetFriendShipNum()
         {
             /*it takes O(logN)*/
             /*because RB-Tree is a Balanced Tree*/
-            
+
             mainFriend = atoi(str);
             index++;
         }
-            
+
         else if (index == 1)
         {
             /*it takes O(logN)*/
             /*because RB-Tree is a Balanced Tree*/
-            
+
             subFriend = atoi(str);
 
             /*temp is mainFriend structure*/
             User *temp = searchElement(mainFriend);
-            
-            if(temp)
+
+            if (temp)
                 AddData_Head(&temp->friendShip, NULL, subFriend);
             else
                 printf("%d \n", mainFriend);
-            
+
             /*while ((user + i)->idNumber != mainFriend)
                 i++;
 
@@ -1004,15 +1004,15 @@ void Print_Top5_Most_Tweeted_Word()
 
     /*list traverse  takes O(n)*/
     /*takes two array, 1) Word 2) Who tweeted that word*/
-    
+
     while (tweet->cur != NULL && tweetTogether_IDnum->cur != NULL)
     {
         strcpy(word[i], tweet->cur->data);
-        
+
         idNum[i] = tweetTogether_IDnum->cur->idNum;
 
         i++;
-        
+
         tweet->cur = tweet->cur->next;
         tweetTogether_IDnum->cur = tweetTogether_IDnum->cur->next;
     }
@@ -1021,13 +1021,13 @@ void Print_Top5_Most_Tweeted_Word()
     BubbleSort(word, idNum, n);
 
     tweet->cur = tweet->head;
-    
+
     /*idNum and word array are same as word.txt files*/
-    
+
     for (i = 0; i < n; i++)
     {
         printf("%d\t%s\n", idNum[i], word[i]);
-        
+
     }
 }
 
@@ -1046,9 +1046,9 @@ void Print_Statistics()
     int min_Tweet = user->tweetsNum, max_Tweet = user->tweetsNum;
     int min_ID = 0, max_ID = 0;
     int i, key;
-    
+
     NewLine
-    
+
     for (i = 0; i < Total_User; i++)
     {
         key = (user + i)->tweetsNum;
@@ -1145,6 +1145,22 @@ int Process()
     return TRUE;
 }
 
+void PrintAllFriendShip()
+{
+    int i;
+    Node *cur = NULL;
+
+    for (i = 0; i < User_index; i++)
+    {
+        while((user+i)->friendShip.head != NULL)
+        {
+            printf("%d -> ", (user+i)->friendShip.head->idNum);
+            (user+i)->friendShip.head = (user+i)->friendShip.head->next;
+        }
+        
+        printf("NULL\n\n");
+    }
+}
 
 int main(void)
 {
@@ -1152,30 +1168,32 @@ int main(void)
     GetTheUserNum();
 
     for (int i = 0; i < User_index; i++)
+    {
         insertion((user + i));
+    }    
 
     GetFriendShipNum();
     GetTweetsNum();
-
-
-
+    
+    PrintAllFriendShip();
+    
     /*This rood has struct which are sorted by idNum*/
     inorderTraversal(root);
     NewLine
 
-    do 
-    { 
+    do
+    {
         NewLine
         puts("Keep going: ");
         scanf("%d", &sNum);
-        
+
         NewLine
-        
-        if(sNum)
+
+        if (sNum)
             Interface();
         else
             break;
-        
+
     } while (Process());
 
     NewLine
