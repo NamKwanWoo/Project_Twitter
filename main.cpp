@@ -13,6 +13,15 @@ enum nodeColor
     BLACK
 };
 
+enum Select
+{
+    Top5_Most_Tweeted_User = 3,
+    Find_User_Who_Tweeted_word = 4,
+    Find_All_People_Who_are_Friend_of_4 = 5,
+    Delete_Users_Who_Mentioned_Word = 6,
+    Delete_All_Users_Who_Mentioned_Word = 7
+};
+
 typedef char *Data;
 
 typedef struct _node
@@ -551,7 +560,7 @@ User *searchElement(int main_ID)
             return temp->data;
     }
 
-    printf("Given Data Not Found in RB Tree!!\n");
+    printf("%d does not exits! \n", main_ID);
     return NULL;
 }
 
@@ -784,7 +793,6 @@ void GetTheUserNum()
 void GetFriendShipNum()
 {
     int index = 0;
-    int userIndex = 0;
     int mainFriend = 0, subFriend = 0;
 
     /*Initiation all the user tweet list*/
@@ -806,7 +814,7 @@ void GetFriendShipNum()
             /*it takes O(logN)*/
             /*because RB-Tree is a Balanced Tree*/
 
-            mainFriend = atoi(str);
+            subFriend = atoi(str);
             index++;
         }
 
@@ -815,13 +823,13 @@ void GetFriendShipNum()
             /*it takes O(logN)*/
             /*because RB-Tree is a Balanced Tree*/
 
-            subFriend = atoi(str);
+            mainFriend = atoi(str);
 
             /*temp is mainFriend structure*/
             User *temp = searchElement(mainFriend);
 
             if (temp)
-                AddData_Head(&temp->friendShip, NULL, subFriend);
+                AddData_Head(&temp->friendShip, temp->screen_name, subFriend);
             else
                 printf("%d \n", mainFriend);
 
@@ -895,6 +903,16 @@ void GetTweetsNum()
 
     Total_Tweets /= 4;
 }
+
+void ReadTheDataFile()
+{
+    NewLine
+    printf("%s %d\n", "Total users: ", Total_User);
+    printf("%s %d\n", "Total friendship records: ", Total_Friendship_Records);
+    printf("%s %d\n", "Total tweets: ", Total_Tweets);
+    NewLine
+}
+
 
 int Partition(int name[], int A[], int p, int r)
 {
@@ -992,12 +1010,10 @@ void BubbleSort(char str[][LEN], int A[Total_Tweets], int n)
     return;
 }
 
-void Print_Top5_Most_Tweeted_Word()
+void Get_SortedData(char word[Total_Tweets][LEN], int *idNum)
 {
-    char word[Total_Tweets][LEN];
-    int idNum[Total_Tweets];
-    int n = Total_Tweets;
     int i = 0;
+    int n = Total_Tweets;
 
     tweet->cur = tweet->head;
     tweetTogether_IDnum->cur = tweetTogether_IDnum->head;
@@ -1009,7 +1025,7 @@ void Print_Top5_Most_Tweeted_Word()
     {
         strcpy(word[i], tweet->cur->data);
 
-        idNum[i] = tweetTogether_IDnum->cur->idNum;
+        *(idNum + i) = tweetTogether_IDnum->cur->idNum;
 
         i++;
 
@@ -1022,13 +1038,47 @@ void Print_Top5_Most_Tweeted_Word()
 
     tweet->cur = tweet->head;
 
+}
+
+/*
+ * select (3) == Print Top5 Most Word
+ * select (4) == Print Who Tweeted Word
+ * select (5) ==  Find All People Who are Friend of above user
+ * select (6) ==  Delete users who mentioned a word
+ * select (7) ==  Delete all users who mentioned a word
+ * 
+ * */
+
+void Word_ID_RealtionShip_Func(char *str, int select)
+{
+    char word[Total_Tweets][LEN];
+    int idNum[Total_Tweets];
+    int n = Total_Tweets;
+    int i = 0;
+    
     /*idNum and word array are same as word.txt files*/
+    Get_SortedData(word, idNum);
+    
 
-    for (i = 0; i < n; i++)
+    if (select == Top5_Most_Tweeted_User)
     {
-        printf("%d\t%s\n", idNum[i], word[i]);
-
+        for (i = 0; i < n; i++)
+            printf("%d \t->\t %s\n", idNum[i], word[i]);
     }
+
+    else if (select == Find_User_Who_Tweeted_word)
+    {
+        char string[LEN];
+        getchar();
+        gets(string);
+    }
+
+    else if (select == Find_All_People_Who_are_Friend_of_4) { }
+
+    else if (select == Delete_Users_Who_Mentioned_Word) { }
+
+    else if (select == Delete_All_Users_Who_Mentioned_Word) { }
+
 }
 
 void Print_Statistics()
@@ -1094,15 +1144,6 @@ void Interface()
     printf("Select Menu: ");
 }
 
-void ReadTheDataFile()
-{
-    NewLine
-    printf("%s %d\n", "Total users: ", Total_User);
-    printf("%s %d\n", "Total friendship records: ", Total_Friendship_Records);
-    printf("%s %d\n", "Total tweets: ", Total_Tweets);
-    NewLine
-}
-
 int Process()
 {
     int sKey;
@@ -1120,16 +1161,20 @@ int Process()
             Print_Top5_Most_Tweeted_User();
             break;
         case 3:
-            Print_Top5_Most_Tweeted_Word();
+            Word_ID_RealtionShip_Func(NULL, Top5_Most_Tweeted_User);
             break;
         case 4:
-
+            Word_ID_RealtionShip_Func(NULL, Find_User_Who_Tweeted_word);
+            break;
         case 5:
-
+            Word_ID_RealtionShip_Func(NULL, Find_All_People_Who_are_Friend_of_4);
+            break;
         case 6:
-
+            Word_ID_RealtionShip_Func(NULL, Delete_Users_Who_Mentioned_Word);
+            break;
         case 7:
-
+            Word_ID_RealtionShip_Func(NULL, Delete_All_Users_Who_Mentioned_Word);
+            break;
         case 8:
 
         case 9:
@@ -1147,19 +1192,26 @@ int Process()
 
 void PrintAllFriendShip()
 {
-    int i;
+    int i, count = 0;
     Node *cur = NULL;
 
     for (i = 0; i < User_index; i++)
     {
-        while((user+i)->friendShip.head != NULL)
+        printf("Main: %d \n", (user + i)->idNumber);
+
+        cur = (user + i)->friendShip.head;
+        while (cur != NULL)
         {
-            printf("%d -> ", (user+i)->friendShip.head->idNum);
-            (user+i)->friendShip.head = (user+i)->friendShip.head->next;
+            printf("%d -> ", cur->idNum);
+            cur = cur->next;
+            count++;
+
         }
-        
+
         printf("NULL\n\n");
     }
+
+    printf("%d\n\n\n", count);
 }
 
 int main(void)
@@ -1170,13 +1222,16 @@ int main(void)
     for (int i = 0; i < User_index; i++)
     {
         insertion((user + i));
-    }    
+    }
 
     GetFriendShipNum();
     GetTweetsNum();
-    
+
     PrintAllFriendShip();
-    
+
+    NewLine
+    NewLine
+
     /*This rood has struct which are sorted by idNum*/
     inorderTraversal(root);
     NewLine
