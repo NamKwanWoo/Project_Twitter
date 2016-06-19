@@ -5,7 +5,15 @@
 #define LEN     300
 #define TRUE    1
 #define FALSE   0
+#define INFINITY  (int)1E10
 #define NewLine     printf("\n\n");
+
+enum graphVerx
+{
+    WHITE = 111,
+    GRAY = 222,
+    //BLACK = 333
+};
 
 enum nodeColor
 {
@@ -577,6 +585,146 @@ void inorderTraversal(struct rbNode *node)
 }
 
 
+
+
+
+typedef struct Adj
+{
+    int n;
+    struct Adj *next;
+} Adj;
+
+void Adj_init(Adj *self)
+{
+    self->n = 0;
+    self->next = NULL;
+}
+
+typedef struct
+{
+    int color;
+    int parent;
+    int name;
+    int n;
+    Adj *first;
+} Vertex;
+
+void Vertex_init(Vertex *self)
+{
+    self->color = 0;
+    self->parent = -1;
+    self->name = 0;
+    self->n = 0;
+    self->first = NULL;
+}
+
+void Vertex_add(Vertex *self, Vertex *v)
+{
+    Adj *a = (Adj *) malloc(sizeof(Adj));
+    a->n = v->n;
+    a->next = self->first;
+    self->first = a;
+}
+
+typedef struct
+{
+    Vertex super;
+    int dfs_in, dfs_out;
+} DFSVertex;
+
+void DFSVertex_init(DFSVertex *self)
+{
+    Vertex_init(&self->super);
+    self->dfs_in = 0;
+    self->dfs_out = 0;
+}
+
+void print_dfsvertex(DFSVertex *vertices, int n)
+{
+    printf("%-8d ", vertices[n].super.name);
+    printf("%-8d ", vertices[n].super.color);
+    printf("%-8d ", vertices[n].super.parent);
+    printf("%-8d ", vertices[n].dfs_in);
+    printf("%-8d", vertices[n].dfs_out);
+
+    printf("   \t: ");
+
+    for (Adj *p = vertices[n].super.first; p; p = p->next)
+    {
+        printf("%d ", vertices[p->n].super.name);
+    }
+
+    printf("\n");
+}
+
+int dfs_time = 0;
+
+
+void dfs_visit(DFSVertex *vertices, int nelem, int u)
+{
+    dfs_time++;
+    vertices[u].dfs_in = dfs_time;
+    vertices[u].super.color = GRAY;     //방문 기록 OK
+
+    printf("%d : %d, \n", vertices[u].super.name, dfs_time);
+    for (Adj *v = vertices[u].super.first; v; v = v->next)
+    {
+        if (vertices[v->n].super.color == WHITE)
+        {
+            printf("시작 %d\n", vertices[v->n].super.name);
+
+            vertices[v->n].super.parent = u;
+            dfs_visit(vertices, nelem, v->n);
+        }
+    }
+    vertices[u].super.color = BLACK;
+    dfs_time++;
+    vertices[u].dfs_out = dfs_time;
+    printf("%d 탈출! \n", vertices[u].super.name);
+}
+
+void dfs(DFSVertex *vertices, int nelem)
+{
+    for (int u = 0; u < nelem; u++)
+    {
+        vertices[u].super.color = WHITE;
+        vertices[u].super.parent = INFINITY;
+    }
+
+    dfs_time = 0;
+
+    for (int u = 0; u < nelem; u++)
+    {
+        if (vertices[u].super.n == WHITE)
+        {
+            dfs_visit(vertices, nelem, u);
+        }
+    }
+}
+
+void Tran_Vertex_add(Vertex *self, Vertex *v)
+{
+    Adj *a = (Adj *) malloc(sizeof(Adj));
+    Adj *tmp = self->first;
+    a->n = v->n;
+
+    if (self->first == NULL)
+    {
+        a->next = self->first;
+        self->first = a;
+        return;
+    }
+
+    // Insert to tail
+    while (tmp->next != NULL)
+        tmp = tmp->next;
+
+    a->next = NULL;
+    tmp->next = a;
+}
+
+
+
 void InitList(List *list)
 {
     list = (List *) malloc(sizeof(List));
@@ -794,6 +942,7 @@ void GetFriendShipNum()
 {
     int index = 0;
     int mainFriend = 0, subFriend = 0;
+    char *str = (char *) malloc(sizeof(char) * LEN);
 
     /*Initiation all the user tweet list*/
     for (int i = 0; i < User_index; i++)
@@ -801,20 +950,19 @@ void GetFriendShipNum()
 
     while (fgets(str, LEN, fren_File))
     {
-        if (strcmp(str, "\n") == 0 || strcmp(str, "\r\n") == 0)
+        if (index == 3)
         {
-            Total_Friendship_Records++;
-            continue;
+            index = 0;
+            //continue;
         }
-
-        if (index == 3) { index = 0; }
 
         if (index == 0)
         {
             /*it takes O(logN)*/
             /*because RB-Tree is a Balanced Tree*/
 
-            subFriend = atoi(str);
+            if (strcmp(str, ""))
+                subFriend = atoi(str);
             index++;
         }
 
@@ -1055,10 +1203,10 @@ void Word_ID_RealtionShip_Func(char *str, int select)
     int idNum[Total_Tweets];
     int n = Total_Tweets;
     int i = 0;
-    
+
     /*idNum and word array are same as word.txt files*/
     Get_SortedData(word, idNum);
-    
+
 
     if (select == Top5_Most_Tweeted_User)
     {
@@ -1078,7 +1226,6 @@ void Word_ID_RealtionShip_Func(char *str, int select)
     else if (select == Delete_Users_Who_Mentioned_Word) { }
 
     else if (select == Delete_All_Users_Who_Mentioned_Word) { }
-
 }
 
 void Print_Statistics()
@@ -1095,23 +1242,57 @@ void Print_Statistics()
     int avg_Tweet = 0;
     int min_Tweet = user->tweetsNum, max_Tweet = user->tweetsNum;
     int min_ID = 0, max_ID = 0;
+
     int i, key;
 
+    int avg_Friend = 0;
+    int min_Friend = user->friendShip.numOfData;
+    int max_Friend = user->friendShip.numOfData;
+    int min_F_ID = 0, max_F_ID = 0;
+
     NewLine
+
+    for (i = 0; i < Total_User; i++)
+    {
+        key = (user + i)->friendShip.numOfData;
+
+        /*The case that get the min tweet user*/
+        if (min_Friend > key && key != FALSE)
+        {
+            min_Friend = key;
+            min_F_ID = (user + i)->idNumber;
+        }
+
+        /*The case that get the max tweet user*/
+        if (max_Tweet < key && key != FALSE)
+        {
+            max_Friend = key;
+            max_F_ID = (user + i)->idNumber;
+        }
+
+        avg_Friend += key;
+    }
+    avg_Friend /= Total_User;
+
+    printf("Average friend per user: %d\n", avg_Friend);
+    printf("Minium friend per user: %d -> %d\n", min_F_ID, min_Friend);
+    printf("Maximum friend per user: %d -> %d\n", max_F_ID, max_Friend);
+    NewLine
+
 
     for (i = 0; i < Total_User; i++)
     {
         key = (user + i)->tweetsNum;
 
         /*The case that get the min tweet user*/
-        if (min_Tweet > key)
+        if (min_Tweet > key && key != FALSE)
         {
             min_Tweet = key;
             min_ID = (user + i)->idNumber;
         }
 
         /*The case that get the max tweet user*/
-        if (max_Tweet < key)
+        if (max_Tweet < key && key != FALSE)
         {
             max_Tweet = key;
             max_ID = (user + i)->idNumber;
@@ -1124,8 +1305,6 @@ void Print_Statistics()
     printf("Average tweets per user: %d\n", avg_Tweet);
     printf("Minium tweets per user: %d -> %d\n", min_ID, min_Tweet);
     printf("Maximum tweets per user: %d -> %d\n", max_ID, max_Tweet);
-    NewLine
-
 }
 
 void Interface()
@@ -1176,7 +1355,8 @@ int Process()
             Word_ID_RealtionShip_Func(NULL, Delete_All_Users_Who_Mentioned_Word);
             break;
         case 8:
-
+            /*8. Find strongly connected components
+            DFS -> Denumeration -> Transpose -> Group -> Forest -> Group*/
         case 9:
 
         case 99:
@@ -1217,15 +1397,44 @@ void PrintAllFriendShip()
 int main(void)
 {
     int sNum;
+    DFSVertex vertices[User_index];
+    
     GetTheUserNum();
 
     for (int i = 0; i < User_index; i++)
     {
         insertion((user + i));
+        DFSVertex_init(&(vertices[i]));
     }
+    
+    for(int i=0; i<User_index; i++)
+    {
+        Node *cur = (user + i)->friendShip.head;
+        
+        vertices[i].super.name = (user + i)->idNumber;
+        
+        while(cur != NULL)
+        {
+            DFSVertex add_Vertex;
+
+            DFSVertex_init(&add_Vertex);
+            add_Vertex.super.name =  cur->idNum;
+            Vertex_add(&(vertices[i]).super, &add_Vertex.super);
+            
+            cur = cur->next;
+        }
+    }
+    
+    print_dfsvertex(vertices, User_index);
+    dfs(vertices, User_index);
+    print_dfsvertex(vertices, User_index);
+    
 
     GetFriendShipNum();
     GetTweetsNum();
+    
+    
+    
 
     PrintAllFriendShip();
 
@@ -1252,12 +1461,6 @@ int main(void)
     } while (Process());
 
     NewLine
-
-    /*while (!IsListEmpty(tweet))
-    {
-        printf("  %s \n", DeleteData_Head(tweet));
-    }*/
-
 
     return 0;
 }
