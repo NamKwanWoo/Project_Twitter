@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #define LEN     300
 #define TRUE    1
@@ -130,7 +131,6 @@ void insertion(User *data)
     /* insert the new node */
     stack[ht - 1]->link[index] = newnode = createNode(data);
 
-
     while ((ht >= 3) && (stack[ht - 1]->color == RED))
     {
         if (dir[ht - 2] == 0)
@@ -154,7 +154,8 @@ void insertion(User *data)
                 if (dir[ht - 1] == 0)
                 {
                     yPtr = stack[ht - 1];
-                } else
+                }
+                else
                 {
                     /*
                      * XR - node X with red color
@@ -170,6 +171,7 @@ void insertion(User *data)
                      * performed after this else part.  Since
                      * we have red node (YR) with red child(XR)
                      */
+
                     xPtr = stack[ht - 1];
                     yPtr = xPtr->link[1];
                     xPtr->link[1] = yPtr->link[0];
@@ -183,7 +185,7 @@ void insertion(User *data)
                  *  color of Y to black and Black child B to Red R
                  *          B           YR          YB
                  *         /           /  \        /  \
-                 *        YR  =>   XR   B  =>  XR  R
+                 *        YR  =>      XR   B  =>  XR   R
                  *       /
                  *      XR
                  */
@@ -192,16 +194,19 @@ void insertion(User *data)
                 yPtr->color = BLACK;
                 xPtr->link[0] = yPtr->link[1];
                 yPtr->link[1] = xPtr;
+
                 if (xPtr == root)
                 {
                     root = yPtr;
-                } else
+                }
+                else
                 {
                     stack[ht - 3]->link[dir[ht - 3]] = yPtr;
                 }
                 break;
             }
-        } else
+        }
+        else
         {
             yPtr = stack[ht - 2]->link[0];
             if ((yPtr != NULL) && (yPtr->color == RED))
@@ -210,15 +215,16 @@ void insertion(User *data)
                  * Red node with red child
                  *        B             R
                  *      /   \         /   \
-                 *     R     R =>  B     B
-                 *             \              \
-                 *              R              R
+                 *     R     R   =>  B     B
+                 *            \             \
+                 *             R             R
                  *
                  */
                 stack[ht - 2]->color = RED;
                 stack[ht - 1]->color = yPtr->color = BLACK;
                 ht = ht - 2;
-            } else
+            }
+            else
             {
                 if (dir[ht - 1] == 1)
                 {
@@ -229,11 +235,13 @@ void insertion(User *data)
                      * Red node(XR) with red child(YR) 
                      *   B          B
                      *    \          \
-                     *     XR  => YR
+                     *     XR  =>     YR
                      *    /            \
                      *   YR             XR
+                     *   
                      * Single rotation b/w XR(node x with red color) & YR
                      */
+
                     xPtr = stack[ht - 1];
                     yPtr = xPtr->link[0];
                     xPtr->link[0] = yPtr->link[1];
@@ -241,9 +249,9 @@ void insertion(User *data)
                     stack[ht - 2]->link[1] = yPtr;
                 }
                 /*
-                 *   B              YR          YB
-                 *    \             /  \        /  \
-                 *     YR  =>   B   XR => R    XR
+                 *   B               YR           YB
+                 *    \             /  \         /  \
+                 *     YR    =>    B    XR  =>  R    XR
                  *      \
                  *       XR
                  * Single rotation b/w YR and XR and change the color to
@@ -257,7 +265,8 @@ void insertion(User *data)
                 if (xPtr == root)
                 {
                     root = yPtr;
-                } else
+                }
+                else
                 {
                     stack[ht - 3]->link[dir[ht - 3]] = yPtr;
                 }
@@ -366,7 +375,11 @@ void deletion(User *data)
             yPtr->color = ptr->color;
             ptr->color = color;
         }
+        
+        Total_User--;
     }
+
+
     if (ht < 1)
         return;
     if (ptr->color == BLACK)
@@ -437,7 +450,8 @@ void deletion(User *data)
                      *
                      */
                     rPtr->color = RED;
-                } else
+                }
+                else
                 {
                     if (!rPtr->link[1] || rPtr->link[1]->color == BLACK)
                     {
@@ -485,7 +499,8 @@ void deletion(User *data)
                     }
                     break;
                 }
-            } else
+            }
+            else
             {
                 rPtr = stack[ht - 1]->link[0];
                 if (!rPtr)
@@ -545,6 +560,7 @@ void deletion(User *data)
             ht--;
         }
     }
+
 }
 
 void AddData_Head(List *, char *, int);
@@ -583,9 +599,6 @@ void inorderTraversal(struct rbNode *node)
     }
     return;
 }
-
-
-
 
 
 typedef struct Adj
@@ -722,7 +735,6 @@ void Tran_Vertex_add(Vertex *self, Vertex *v)
     a->next = NULL;
     tmp->next = a;
 }
-
 
 
 void InitList(List *list)
@@ -962,7 +974,7 @@ void GetFriendShipNum()
             /*because RB-Tree is a Balanced Tree*/
 
             if (strcmp(str, ""))
-                subFriend = atoi(str);
+                mainFriend = atoi(str);
             index++;
         }
 
@@ -971,7 +983,7 @@ void GetFriendShipNum()
             /*it takes O(logN)*/
             /*because RB-Tree is a Balanced Tree*/
 
-            mainFriend = atoi(str);
+            subFriend = atoi(str);
 
             /*temp is mainFriend structure*/
             User *temp = searchElement(mainFriend);
@@ -1188,6 +1200,47 @@ void Get_SortedData(char word[Total_Tweets][LEN], int *idNum)
 
 }
 
+int BinarySerach(char word[Total_Tweets][LEN], int idNum[LEN], int p, int q, char *target)
+{
+    int mid = (p+q)/2;
+    
+    if(p <= q)
+    {
+        if(strcmp(target, word[mid]) == 0)
+            return mid;
+        else if(strcmp(target, word[mid]) > 0)
+            return BinarySerach(word, idNum, p, mid-1, target);
+        else
+            return BinarySerach(word, idNum, mid+1, q, target);
+    }
+
+    return -1;
+    
+}
+
+void PrintAllFriendShip(int idNum)
+{
+    int i, count = 0;
+    Node *cur = NULL;
+
+    for (i = 0; i < User_index; i++)
+    {
+        if((user+i)->idNumber == idNum)
+        {
+            printf("Main: %d   \t\t (%d) \n", (user + i)->idNumber, (user + i)->friendShip.numOfData);
+
+            cur = (user + i)->friendShip.head;
+            while (cur != NULL)
+            {
+                printf("%d -> ", cur->idNum);
+                cur = cur->next;
+                count++;
+            }
+            printf("NULL\n\n");
+        }
+    }
+}
+
 /*
  * select (3) == Print Top5 Most Word
  * select (4) == Print Who Tweeted Word
@@ -1196,6 +1249,8 @@ void Get_SortedData(char word[Total_Tweets][LEN], int *idNum)
  * select (7) ==  Delete all users who mentioned a word
  * 
  * */
+
+char string[LEN];
 
 void Word_ID_RealtionShip_Func(char *str, int select)
 {
@@ -1207,7 +1262,6 @@ void Word_ID_RealtionShip_Func(char *str, int select)
     /*idNum and word array are same as word.txt files*/
     Get_SortedData(word, idNum);
 
-
     if (select == Top5_Most_Tweeted_User)
     {
         for (i = 0; i < n; i++)
@@ -1216,14 +1270,76 @@ void Word_ID_RealtionShip_Func(char *str, int select)
 
     else if (select == Find_User_Who_Tweeted_word)
     {
-        char string[LEN];
+        int idx = 0, check = 0;
+        char *dummy;
         getchar();
         gets(string);
+        strcat(string, "\n");
+        
+        while(idx < Total_Tweets)
+        {
+            dummy = word[idx];
+            
+            if(strcmp(dummy, string) == 0)
+            {
+                printf("%d -> %s\n", idNum[idx], word[idx]);
+                check = TRUE;
+            }
+            idx++;
+        }
+        
+        if(!check)
+            printf("%s does not exit in text file\n", string);
     }
 
-    else if (select == Find_All_People_Who_are_Friend_of_4) { }
+    else if (select == Find_All_People_Who_are_Friend_of_4) 
+    {
+        int idx = 0, check = FALSE;
+        char *dummy;
+        
+        printf("Find Word is %s\n\n", string);
+        
+        while(idx < Total_Tweets)
+        {
+            dummy = word[idx];
 
-    else if (select == Delete_Users_Who_Mentioned_Word) { }
+            if(strcmp(dummy, string) == 0)
+            {
+                PrintAllFriendShip(idNum[idx]);
+                check = TRUE;
+            }
+            idx++;
+        }
+
+        if(!check)
+            printf("%s does not exit in text file\n", string);
+    }
+
+    else if (select == Delete_Users_Who_Mentioned_Word) 
+    {
+        getchar();
+        gets(string);
+        strcat(string, "\n");
+
+        int idx = 0;
+        char *dummy;
+
+        printf("Find Word is %s\n\n", string);
+
+        while(idx < Total_Tweets)
+        {
+            dummy = word[idx];
+
+            if(strcmp(dummy, string) == 0)
+            {
+                User *temp = searchElement(idNum[idx]);
+                
+                printf("ID: %d is deleted \n", idNum[idx]);
+                deletion(temp);
+            }
+            idx++;
+        }
+    }
 
     else if (select == Delete_All_Users_Who_Mentioned_Word) { }
 }
@@ -1315,7 +1431,7 @@ void Interface()
     puts("3. Top 5 most tweeted users");
     puts("4. Find users who tweeted a word (e.g., ’연세대’)");
     puts("5. Find all people who are friends of the above users");
-    puts("6. Delete users who mentioned a word");
+    puts("6. Delete all mentions of a word");
     puts("7. Delete all users who mentioned a word");
     puts("8. Find strongly connected components");
     puts("9. Find shortest path from a given user");
@@ -1370,79 +1486,19 @@ int Process()
     return TRUE;
 }
 
-void PrintAllFriendShip()
-{
-    int i, count = 0;
-    Node *cur = NULL;
-
-    for (i = 0; i < User_index; i++)
-    {
-        printf("Main: %d \n", (user + i)->idNumber);
-
-        cur = (user + i)->friendShip.head;
-        while (cur != NULL)
-        {
-            printf("%d -> ", cur->idNum);
-            cur = cur->next;
-            count++;
-
-        }
-
-        printf("NULL\n\n");
-    }
-
-    printf("%d\n\n\n", count);
-}
-
 int main(void)
 {
     int sNum;
-    DFSVertex vertices[User_index];
     
     GetTheUserNum();
-
+    
     for (int i = 0; i < User_index; i++)
-    {
         insertion((user + i));
-        DFSVertex_init(&(vertices[i]));
-    }
     
-    for(int i=0; i<User_index; i++)
-    {
-        Node *cur = (user + i)->friendShip.head;
-        
-        vertices[i].super.name = (user + i)->idNumber;
-        
-        while(cur != NULL)
-        {
-            DFSVertex add_Vertex;
-
-            DFSVertex_init(&add_Vertex);
-            add_Vertex.super.name =  cur->idNum;
-            Vertex_add(&(vertices[i]).super, &add_Vertex.super);
-            
-            cur = cur->next;
-        }
-    }
-    
-    print_dfsvertex(vertices, User_index);
-    dfs(vertices, User_index);
-    print_dfsvertex(vertices, User_index);
-    
-
     GetFriendShipNum();
     GetTweetsNum();
-    
-    
-    
-
-    PrintAllFriendShip();
 
     NewLine
-    NewLine
-
-    /*This rood has struct which are sorted by idNum*/
-    inorderTraversal(root);
     NewLine
 
     do
