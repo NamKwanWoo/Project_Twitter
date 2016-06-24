@@ -27,7 +27,7 @@ enum Select
     Top5_Most_Tweeted_User = 3,
     Find_User_Who_Tweeted_word = 4,
     Find_All_People_Who_are_Friend_of_4 = 5,
-    Delete_Users_Who_Mentioned_Word = 6,
+    Delete_All_Mentions_of_a_Word = 6,
     Delete_All_Users_Who_Mentioned_Word = 7
 };
 
@@ -376,7 +376,6 @@ void deletion(User *data)
             ptr->color = color;
         }
         
-        Total_User--;
     }
 
 
@@ -561,6 +560,7 @@ void deletion(User *data)
         }
     }
 
+    Total_User--;
 }
 
 void AddData_Head(List *, char *, int);
@@ -857,23 +857,23 @@ Data DeleteSpecData(List *list, Data data)
     else if (list->numOfData == 1)
     {
         delNode = list->head;
-        delData = (char *) list->head->data;
+        delData = list->head->data;
 
         list->head = NULL;
         list->tail = NULL;
     }
 
-    else if (!strcmp((char *) list->cur->data, data))
+    else if (!strcmp(list->cur->data, data))
     {
         delNode = list->cur;
-        delData = (char *) list->head->data;
+        delData = list->head->data;
 
         list->head = list->head->next;
     }
 
     else
     {
-        while (list->cur != NULL && !strcmp((char *) list->cur->data, data))
+        while (list->cur != NULL && !strcmp(list->cur->data, data))
             list->cur = list->cur->next;
 
         if (list->cur == NULL)
@@ -897,6 +897,7 @@ Data DeleteSpecData(List *list, Data data)
 
     return delData;
 }
+
 
 void TweetWord_IDnum_Traverse(List *list)
 {
@@ -997,7 +998,8 @@ void GetFriendShipNum()
                 i++;
 
             AddData_Head(&(user + i)->tweet_Word, str, subFriend);*/
-
+            
+            temp->friendsNum++;
             index++;
         }
 
@@ -1047,7 +1049,7 @@ void GetTweetsNum()
             }
 
             AddData_Head(tweetTogether_IDnum, str, (user + userIndex)->idNumber);
-
+            AddData_Head(&(user + userIndex)->tweet_Word, str, (user + userIndex)->idNumber);
             index++;
         }
         else if (index == 1) { index++; }
@@ -1227,7 +1229,8 @@ void PrintAllFriendShip(int idNum)
     {
         if((user+i)->idNumber == idNum)
         {
-            printf("Main: %d   \t\t (%d) \n", (user + i)->idNumber, (user + i)->friendShip.numOfData);
+            printf("ID NUM: %d  \n", (user + i)->idNumber);
+            printf("Friends List: ");
 
             cur = (user + i)->friendShip.head;
             while (cur != NULL)
@@ -1237,6 +1240,7 @@ void PrintAllFriendShip(int idNum)
                 count++;
             }
             printf("NULL\n\n");
+            break;
         }
     }
 }
@@ -1259,13 +1263,20 @@ void Word_ID_RealtionShip_Func(char *str, int select)
     int n = Total_Tweets;
     int i = 0;
 
+    if(!Total_Tweets)
+    {
+        puts("Words were all deleted\n\n");
+        return;
+    }
+
     /*idNum and word array are same as word.txt files*/
     Get_SortedData(word, idNum);
 
     if (select == Top5_Most_Tweeted_User)
     {
         for (i = 0; i < n; i++)
-            printf("%d \t->\t %s\n", idNum[i], word[i]);
+            if(idNum[i] != -1 )
+                printf("%d \t->\t %s\n", idNum[i], word[i]);
     }
 
     else if (select == Find_User_Who_Tweeted_word)
@@ -1276,12 +1287,20 @@ void Word_ID_RealtionShip_Func(char *str, int select)
         gets(string);
         strcat(string, "\n");
         
+        printf("%s", string);
+        
         while(idx < Total_Tweets)
         {
             dummy = word[idx];
             
             if(strcmp(dummy, string) == 0)
             {
+                if(idNum[idx] == -1)
+                {
+                    printf("%s is already deleted\n", string);
+                    return;
+                }
+                
                 printf("%d -> %s\n", idNum[idx], word[idx]);
                 check = TRUE;
             }
@@ -1315,8 +1334,28 @@ void Word_ID_RealtionShip_Func(char *str, int select)
             printf("%s does not exit in text file\n", string);
     }
 
-    else if (select == Delete_Users_Who_Mentioned_Word) 
+    else if (select == Delete_All_Mentions_of_a_Word) 
     {
+        int idx = 0;
+        char *dummy;
+
+        printf("%d\n\n", tweetTogether_IDnum->numOfData);
+        
+        for(int i=0; i<Total_Tweets; i++)
+            memset(word[i], '\0', LEN);
+
+        while(idx < Total_Tweets)
+        {
+            DeleteData_Head(tweetTogether_IDnum);
+            idx++;
+        }
+        
+        Total_Tweets = 0;
+    }
+
+    else if (select == Delete_All_Users_Who_Mentioned_Word) 
+    {
+        printf("Input what you wanna delete word: ");
         getchar();
         gets(string);
         strcat(string, "\n");
@@ -1332,16 +1371,29 @@ void Word_ID_RealtionShip_Func(char *str, int select)
 
             if(strcmp(dummy, string) == 0)
             {
+                if(idNum[idx] == -1)
+                {
+                    printf("%s is already deleted\n", string);
+                    return;
+                }
+                
                 User *temp = searchElement(idNum[idx]);
                 
-                printf("ID: %d is deleted \n", idNum[idx]);
-                deletion(temp);
+                
+                if(temp)
+                {
+                    printf("ID: %d is deleted \n", idNum[idx]);
+                    deletion(temp);
+                }
+                
+                Total_Tweets--;
             }
+            
+            idNum[idx] = -1;
+            
             idx++;
         }
     }
-
-    else if (select == Delete_All_Users_Who_Mentioned_Word) { }
 }
 
 void Print_Statistics()
@@ -1465,7 +1517,7 @@ int Process()
             Word_ID_RealtionShip_Func(NULL, Find_All_People_Who_are_Friend_of_4);
             break;
         case 6:
-            Word_ID_RealtionShip_Func(NULL, Delete_Users_Who_Mentioned_Word);
+            Word_ID_RealtionShip_Func(NULL, Delete_All_Mentions_of_a_Word );
             break;
         case 7:
             Word_ID_RealtionShip_Func(NULL, Delete_All_Users_Who_Mentioned_Word);
@@ -1497,10 +1549,7 @@ int main(void)
     
     GetFriendShipNum();
     GetTweetsNum();
-
-    NewLine
-    NewLine
-
+    
     do
     {
         NewLine
@@ -1520,10 +1569,3 @@ int main(void)
 
     return 0;
 }
-
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
