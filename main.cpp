@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
 
 #define LEN     300
 #define TRUE    1
@@ -24,7 +23,7 @@ enum nodeColor
 
 enum Select
 {
-    Top5_Most_Tweeted_User = 3,
+    Top5_Most_Tweeted_Word = 3,
     Find_User_Who_Tweeted_word = 4,
     Find_All_People_Who_are_Friend_of_4 = 5,
     Delete_All_Mentions_of_a_Word = 6,
@@ -85,7 +84,6 @@ struct rbNode *createNode(User *data)
     return newnode;
 }
 
-
 static int Total_User = 0, Total_Friendship_Records = 0, Total_Tweets = 0;
 static int User_index = 0;
 
@@ -93,13 +91,10 @@ FILE *user_File = fopen("/Users/namnamnam/Desktop/KOREAUNIV_DS_03/ETC/user.txt",
 FILE *fren_File = fopen("/Users/namnamnam/Desktop/KOREAUNIV_DS_03/ETC/friend.txt", "r");   //1,812 
 FILE *word_File = fopen("/Users/namnamnam/Desktop/KOREAUNIV_DS_03/ETC/word.txt", "r");     //2,175
 
-
 User *user = (User *) malloc(sizeof(User) * 200);       //allocate User
 char *str = (char *) malloc(sizeof(char) * LEN);
-
 List *tweet = (List *) malloc(sizeof(List));
 List *tweetTogether_IDnum = (List *) malloc(sizeof(List));
-List *aFriend = (List *) malloc(sizeof(List));
 
 
 void insertion(User *data)
@@ -375,7 +370,7 @@ void deletion(User *data)
             yPtr->color = ptr->color;
             ptr->color = color;
         }
-        
+
     }
 
 
@@ -584,7 +579,7 @@ User *searchElement(int main_ID)
             return temp->data;
     }
 
-    printf("%d does not exits! \n", main_ID);
+    printf("%d does not exits! \n\n", main_ID);
     return NULL;
 }
 
@@ -780,70 +775,6 @@ void AddData_Head(List *list, Data data, int id)
     (list->numOfData)++;
 }
 
-void AddData_Tail(List *list, Data data)
-{
-    Node *addNode = (Node *) malloc(sizeof(Node));
-
-    addNode->next = NULL;
-    strcpy((char *) addNode->data, data);
-
-
-    if (IsListEmpty(list))
-    {
-        list->head = addNode;
-        list->tail = addNode;
-    }
-    else
-    {
-        list->tail->next = addNode;
-        list->tail = addNode;
-    }
-
-    (list->numOfData)++;
-}
-
-
-Data DeleteData_Head(List *list)
-{
-    Node *deleteNode;
-    Data delData;
-
-    if (IsListEmpty(list))
-        return FALSE;
-
-    deleteNode = list->head;
-    delData = (char *) list->head->data;
-    list->head = list->head->next;
-
-    free(deleteNode);
-    //free(delData);
-    (list->numOfData)--;
-    return delData;
-}
-
-Data DeleteData_Tail(List *list)
-{
-    Node *delNode;
-    Data delData;
-
-    if (IsListEmpty(list))
-        return FALSE;
-
-    delNode = list->tail;
-    delData = (char *) list->head->data;
-
-    list->cur = list->head;
-    while (list->cur->next != list->tail)
-        list->cur = list->cur->next;
-
-    list->tail = list->cur;
-
-    free(delNode);
-
-    (list->numOfData)--;
-    return delData;
-}
-
 Data DeleteSpecData(List *list, Data data)
 {
     Node *delNode;
@@ -873,7 +804,7 @@ Data DeleteSpecData(List *list, Data data)
 
     else
     {
-        while (list->cur != NULL && !strcmp(list->cur->data, data))
+        while (list->cur != NULL && strcmp(list->cur->data, data) != 0)
             list->cur = list->cur->next;
 
         if (list->cur == NULL)
@@ -894,23 +825,15 @@ Data DeleteSpecData(List *list, Data data)
 
     free(delNode);
     (list->numOfData)--;
+    Total_Tweets--;
 
     return delData;
 }
 
-
-void TweetWord_IDnum_Traverse(List *list)
+void RelaxUser()
 {
-    list->cur = list->head;
-
-    while (list->cur != NULL)
-    {
-        printf("%d -> ", list->cur->idNum);
-        list->cur = list->cur->next;
-    }
-    printf("\n");
-
-    return;
+    for (int i = 0; i < User_index; i++)
+        insertion((user + i));
 }
 
 void GetTheUserNum()
@@ -998,7 +921,7 @@ void GetFriendShipNum()
                 i++;
 
             AddData_Head(&(user + i)->tweet_Word, str, subFriend);*/
-            
+
             temp->friendsNum++;
             index++;
         }
@@ -1069,9 +992,10 @@ void GetTweetsNum()
 void ReadTheDataFile()
 {
     NewLine
-    printf("%s %d\n", "Total users: ", Total_User);
-    printf("%s %d\n", "Total friendship records: ", Total_Friendship_Records);
-    printf("%s %d\n", "Total tweets: ", Total_Tweets);
+    printf("\t\t0. Read The Data File\n\n");
+    printf("\t\t%s %d\n", "Total users: ", Total_User);
+    printf("\t\t%s %d\n", "Total friendship records: ", Total_Friendship_Records);
+    printf("\t\t%s %d\n", "Total tweets: ", Total_Tweets);
     NewLine
 }
 
@@ -1087,6 +1011,7 @@ int Partition(int name[], int A[], int p, int r)
         if (A[j] <= x)
         {
             i++;
+
             temp = A[j];
             A[j] = A[i];
             A[i] = temp;
@@ -1127,7 +1052,7 @@ void Print_Top5_Most_Tweeted_User()
     int n = User_index - 1;
 
     NewLine
-    printf("%s\n\n", "3. Top 5 most tweeted users");
+    printf("\t\t%s\n\n", "3. Top 5 most tweeted users");
 
     for (int i = 0; i < User_index; i++)
     {
@@ -1204,20 +1129,20 @@ void Get_SortedData(char word[Total_Tweets][LEN], int *idNum)
 
 int BinarySerach(char word[Total_Tweets][LEN], int idNum[LEN], int p, int q, char *target)
 {
-    int mid = (p+q)/2;
-    
-    if(p <= q)
+    int mid = (p + q) / 2;
+
+    if (p <= q)
     {
-        if(strcmp(target, word[mid]) == 0)
+        if (strcmp(target, word[mid]) == 0)
             return mid;
-        else if(strcmp(target, word[mid]) > 0)
-            return BinarySerach(word, idNum, p, mid-1, target);
+        else if (strcmp(target, word[mid]) > 0)
+            return BinarySerach(word, idNum, p, mid - 1, target);
         else
-            return BinarySerach(word, idNum, mid+1, q, target);
+            return BinarySerach(word, idNum, mid + 1, q, target);
     }
 
     return -1;
-    
+
 }
 
 void PrintAllFriendShip(int idNum)
@@ -1227,9 +1152,9 @@ void PrintAllFriendShip(int idNum)
 
     for (i = 0; i < User_index; i++)
     {
-        if((user+i)->idNumber == idNum)
+        if ((user + i)->idNumber == idNum)
         {
-            printf("ID NUM: %d  \n", (user + i)->idNumber);
+            printf("\t\tID NUM: %d  \n\t\t", (user + i)->idNumber);
             printf("Friends List: ");
 
             cur = (user + i)->friendShip.head;
@@ -1260,69 +1185,115 @@ void Word_ID_RealtionShip_Func(char *str, int select)
 {
     char word[Total_Tweets][LEN];
     int idNum[Total_Tweets];
-    int n = Total_Tweets;
-    int i = 0;
+    char *dummy;
 
-    if(!Total_Tweets)
+    if (!Total_Tweets)
     {
-        puts("Words were all deleted\n\n");
+        puts("\t\tWords were all deleted\n\n");
         return;
     }
 
     /*idNum and word array are same as word.txt files*/
     Get_SortedData(word, idNum);
 
-    if (select == Top5_Most_Tweeted_User)
+    if (select == Top5_Most_Tweeted_Word)
     {
-        for (i = 0; i < n; i++)
-            if(idNum[i] != -1 )
-                printf("%d \t->\t %s\n", idNum[i], word[i]);
+        int max[Total_Tweets];
+        int index[Total_Tweets];
+
+        int idx = 0, count = 0, sub = 0;
+        dummy = word[0];
+
+        memset(max, Total_Tweets, 0);
+        memset(index, Total_Tweets, 0);
+
+        for (int i = 1; i < Total_Tweets; i++)
+        {
+            if (!strcmp(dummy, word[i]))
+                count++;
+
+            else
+            {
+                if (!count)
+                    max[idx] = count + 1;
+                else
+                    max[idx] = count;
+
+                index[idx++] = i - 1;
+                dummy = word[i];
+                count = 0;
+            }
+        }
+
+        for (int i = 0; i < Total_Tweets; i++)
+            if (max[i] == 0)
+            {
+                idx = i;
+                break;
+            }
+
+        for (int i = idx; i < Total_Tweets; i++)
+            max[i] = -1;
+
+        QuickSort(index, max, 0, Total_Tweets);
+        
+        NewLine
+        printf("\t\t2. Top5_Most_Tweeted_User\n\n");
+        int idx1=1;
+        printf("\t\t\tNum\t  ID\t\t\t\t Word\n");
+        for (int i = Total_Tweets - 1; i > Total_Tweets - 6; i--)
+            printf("\t\t\t%d번)\t %d  ->\t\t\t  %s\n", idx1++, idNum[index[i]], word[index[i]]);
+
+        NewLine
     }
 
     else if (select == Find_User_Who_Tweeted_word)
     {
         int idx = 0, check = 0;
-        char *dummy;
         getchar();
         gets(string);
         strcat(string, "\n");
         
-        printf("%s", string);
-        
-        while(idx < Total_Tweets)
+        NewLine
+        printf("\t\t4. Find_User_Who_Tweeted_word\n\n");
+
+        printf("\t\t%s\t\t -> \t%s\n\n", "ID", "Word");
+
+        while (idx < Total_Tweets)
         {
             dummy = word[idx];
-            
-            if(strcmp(dummy, string) == 0)
+
+            if (strcmp(dummy, string) == 0)
             {
-                if(idNum[idx] == -1)
+                if (idNum[idx] == -1)
                 {
-                    printf("%s is already deleted\n", string);
+                    printf("\t\t%s is already deleted\n", string);
                     return;
                 }
-                
-                printf("%d -> %s\n", idNum[idx], word[idx]);
+
+                printf("\t\t%d\t -> \t%s\n", idNum[idx], word[idx]);
                 check = TRUE;
             }
             idx++;
         }
-        
-        if(!check)
-            printf("%s does not exit in text file\n", string);
+
+        if (!check)
+            printf("\t\t%s does not exit in text file\n", string);
     }
 
-    else if (select == Find_All_People_Who_are_Friend_of_4) 
+    else if (select == Find_All_People_Who_are_Friend_of_4)
     {
         int idx = 0, check = FALSE;
-        char *dummy;
         
-        printf("Find Word is %s\n\n", string);
-        
-        while(idx < Total_Tweets)
+        NewLine
+        printf("\t\t5. Find_All_People_Who_are_Friend_of_4\n\n");
+        printf("\t\tFind Word is %s\n\n", string);
+
+        while (idx < Total_Tweets)
         {
             dummy = word[idx];
 
-            if(strcmp(dummy, string) == 0)
+            if (strcmp(dummy, string) == 0)
             {
                 PrintAllFriendShip(idNum[idx]);
                 check = TRUE;
@@ -1330,67 +1301,71 @@ void Word_ID_RealtionShip_Func(char *str, int select)
             idx++;
         }
 
-        if(!check)
-            printf("%s does not exit in text file\n", string);
+        if (!check)
+            printf("\t\t%s does not exit in text file\n", string);
     }
 
-    else if (select == Delete_All_Mentions_of_a_Word) 
+    else if (select == Delete_All_Mentions_of_a_Word)
     {
-        int idx = 0;
-        char *dummy;
-
-        printf("%d\n\n", tweetTogether_IDnum->numOfData);
-        
-        for(int i=0; i<Total_Tweets; i++)
-            memset(word[i], '\0', LEN);
-
-        while(idx < Total_Tweets)
-        {
-            DeleteData_Head(tweetTogether_IDnum);
-            idx++;
-        }
-        
-        Total_Tweets = 0;
-    }
-
-    else if (select == Delete_All_Users_Who_Mentioned_Word) 
-    {
-        printf("Input what you wanna delete word: ");
+        NewLine
+        printf("\t\t6. Delete_All_Mentions_of_a_Word\n\n");
+        printf("\t\tInput What You Wanna Delete Word: ");
         getchar();
         gets(string);
         strcat(string, "\n");
 
         int idx = 0;
-        char *dummy;
 
-        printf("Find Word is %s\n\n", string);
-
-        while(idx < Total_Tweets)
+        while (idx < Total_Tweets)
         {
             dummy = word[idx];
 
-            if(strcmp(dummy, string) == 0)
+            if (strcmp(dummy, string) == 0)
             {
-                if(idNum[idx] == -1)
+                if (idNum[idx] == -1)
                 {
-                    printf("%s is already deleted\n", string);
+                    printf("\t\t%s is already deleted\n", string);
                     return;
                 }
-                
-                User *temp = searchElement(idNum[idx]);
-                
-                
-                if(temp)
+                DeleteSpecData(tweet, string);
+            }
+            idNum[idx] = -1;
+            idx++;
+        }
+    }
+
+    else if (select == Delete_All_Users_Who_Mentioned_Word)
+    {
+        NewLine
+        printf("\t\t7. Delete_All_Users_Who_Mentioned_Word\n\n");
+        printf("\t\tInput What You Wanna Delete Users Who Mentioned Word: ");
+        getchar();
+        gets(string);
+        strcat(string, "\n");
+
+        int idx = 0;
+
+        while (idx < Total_Tweets)
+        {
+            dummy = word[idx];
+
+            if (strcmp(dummy, string) == 0)
+            {
+                if (idNum[idx] == -1)
                 {
-                    printf("ID: %d is deleted \n", idNum[idx]);
+                    printf("\t\t%s is already deleted\n", string);
+                    return;
+                }
+
+                User *temp = searchElement(idNum[idx]);
+
+                if (temp)
+                {
+                    printf("\t\tID: %d is deleted \n\n", idNum[idx]);
                     deletion(temp);
                 }
-                
-                Total_Tweets--;
             }
-            
             idNum[idx] = -1;
-            
             idx++;
         }
     }
@@ -1416,11 +1391,11 @@ void Print_Statistics()
     int avg_Friend = 0;
     int min_Friend = user->friendShip.numOfData;
     int max_Friend = user->friendShip.numOfData;
-    int min_F_ID = 0, max_F_ID = 0;
+    int min_F_ID = user->idNumber, max_F_ID = user->idNumber;
 
     NewLine
 
-    for (i = 0; i < Total_User; i++)
+    for (i = 1; i < Total_User; i++)
     {
         key = (user + i)->friendShip.numOfData;
 
@@ -1442,9 +1417,11 @@ void Print_Statistics()
     }
     avg_Friend /= Total_User;
 
-    printf("Average friend per user: %d\n", avg_Friend);
-    printf("Minium friend per user: %d -> %d\n", min_F_ID, min_Friend);
-    printf("Maximum friend per user: %d -> %d\n", max_F_ID, max_Friend);
+    printf("\t\t1. Display statistics\n\n");
+
+    printf("\t\tAverage friend per user: %d\n", avg_Friend);
+    printf("\t\tMinium friend per user: %d -> %d\n", min_F_ID, min_Friend);
+    printf("\t\tMaximum friend per user: %d -> %d\n", max_F_ID, max_Friend);
     NewLine
 
 
@@ -1469,26 +1446,28 @@ void Print_Statistics()
         avg_Tweet += key;
     }
     avg_Tweet /= Total_User;
+    
 
-    printf("Average tweets per user: %d\n", avg_Tweet);
-    printf("Minium tweets per user: %d -> %d\n", min_ID, min_Tweet);
-    printf("Maximum tweets per user: %d -> %d\n", max_ID, max_Tweet);
+    printf("\t\tAverage tweets per user: %d\n", avg_Tweet);
+    printf("\t\tMinium tweets per user: %d -> %d\n", min_ID, min_Tweet);
+    printf("\t\tMaximum tweets per user: %d -> %d\n", max_ID, max_Tweet);
+    NewLine
 }
 
 void Interface()
 {
-    puts("0. Read data files");
-    puts("1. display statistics");
-    puts("2. Top 5 most tweeted words");
-    puts("3. Top 5 most tweeted users");
-    puts("4. Find users who tweeted a word (e.g., ’연세대’)");
-    puts("5. Find all people who are friends of the above users");
-    puts("6. Delete all mentions of a word");
-    puts("7. Delete all users who mentioned a word");
-    puts("8. Find strongly connected components");
-    puts("9. Find shortest path from a given user");
-    puts("99. Quit");
-    printf("Select Menu: ");
+    puts("\t\t0. Read data files");
+    puts("\t\t1. display statistics");
+    puts("\t\t2. Top 5 most tweeted words");
+    puts("\t\t3. Top 5 most tweeted users");
+    puts("\t\t4. Find users who tweeted a word (e.g., ’연세대’)");
+    puts("\t\t5. Find all people who are friends of the above users");
+    puts("\t\t6. Delete all mentions of a word");
+    puts("\t\t7. Delete all users who mentioned a word");
+    puts("\t\t8. Find strongly connected components");
+    puts("\t\t9. Find shortest path from a given user");
+    puts("\t\t99. Quit");
+    printf("\t\tSelect Menu: ");
 }
 
 int Process()
@@ -1505,10 +1484,10 @@ int Process()
             Print_Statistics();
             break;
         case 2:
-            Print_Top5_Most_Tweeted_User();
+            Word_ID_RealtionShip_Func(NULL, Top5_Most_Tweeted_Word);
             break;
         case 3:
-            Word_ID_RealtionShip_Func(NULL, Top5_Most_Tweeted_User);
+            Print_Top5_Most_Tweeted_User();
             break;
         case 4:
             Word_ID_RealtionShip_Func(NULL, Find_User_Who_Tweeted_word);
@@ -1517,7 +1496,7 @@ int Process()
             Word_ID_RealtionShip_Func(NULL, Find_All_People_Who_are_Friend_of_4);
             break;
         case 6:
-            Word_ID_RealtionShip_Func(NULL, Delete_All_Mentions_of_a_Word );
+            Word_ID_RealtionShip_Func(NULL, Delete_All_Mentions_of_a_Word);
             break;
         case 7:
             Word_ID_RealtionShip_Func(NULL, Delete_All_Users_Who_Mentioned_Word);
@@ -1529,7 +1508,7 @@ int Process()
 
         case 99:
             NewLine
-            puts("Quit the program");
+            puts("\t\tQuit the program");
             return FALSE;
 
         default:
@@ -1541,19 +1520,16 @@ int Process()
 int main(void)
 {
     int sNum;
-    
+
     GetTheUserNum();
-    
-    for (int i = 0; i < User_index; i++)
-        insertion((user + i));
-    
+    RelaxUser();
     GetFriendShipNum();
     GetTweetsNum();
-    
+
     do
     {
         NewLine
-        puts("Keep going: ");
+        printf("\t\tPlease Enter any key ");
         scanf("%d", &sNum);
 
         NewLine
@@ -1564,8 +1540,6 @@ int main(void)
             break;
 
     } while (Process());
-
-    NewLine
 
     return 0;
 }
