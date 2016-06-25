@@ -579,7 +579,7 @@ User *searchElement(int main_ID)
             return temp->data;
     }
 
-    printf("%d does not exits! \n\n", main_ID);
+    printf("\n\t\t%d does not exits! \n\n", main_ID);
     return NULL;
 }
 
@@ -626,7 +626,7 @@ void Vertex_init(Vertex *self)
     self->first = NULL;
 }
 
-void Vertex_add(Vertex *self, Vertex *v)
+void Vertex_add(Vertex *self, Vertex *v, int weight)
 {
     Adj *a = (Adj *) malloc(sizeof(Adj));
     a->n = v->n;
@@ -649,7 +649,7 @@ void DFSVertex_init(DFSVertex *self)
 
 void print_dfsvertex(DFSVertex *vertices, int n)
 {
-    printf("%-8d ", vertices[n].super.name);
+    printf("%-8d \t", vertices[n].super.name);
     printf("%-8d ", vertices[n].super.color);
     printf("%-8d ", vertices[n].super.parent);
     printf("%-8d ", vertices[n].dfs_in);
@@ -657,12 +657,15 @@ void print_dfsvertex(DFSVertex *vertices, int n)
 
     printf("   \t: ");
 
-    for (Adj *p = vertices[n].super.first; p; p = p->next)
+    Adj *p = vertices[n].super.first;
+
+    while (p != NULL)
     {
         printf("%d ", vertices[p->n].super.name);
+        p = p->next;
     }
 
-    printf("\n");
+    NewLine
 }
 
 int dfs_time = 0;
@@ -679,7 +682,7 @@ void dfs_visit(DFSVertex *vertices, int nelem, int u)
     {
         if (vertices[v->n].super.color == WHITE)
         {
-            printf("시작 %d\n", vertices[v->n].super.name);
+            //printf("시작 %d\n", vertices[v->n].super.name);
 
             vertices[v->n].super.parent = u;
             dfs_visit(vertices, nelem, v->n);
@@ -688,7 +691,7 @@ void dfs_visit(DFSVertex *vertices, int nelem, int u)
     vertices[u].super.color = BLACK;
     dfs_time++;
     vertices[u].dfs_out = dfs_time;
-    printf("%d 탈출! \n", vertices[u].super.name);
+    //printf("%d 탈출! \n", vertices[u].super.name);
 }
 
 void dfs(DFSVertex *vertices, int nelem)
@@ -710,7 +713,7 @@ void dfs(DFSVertex *vertices, int nelem)
     }
 }
 
-void Tran_Vertex_add(Vertex *self, Vertex *v)
+void Tran_Vertex_add(Vertex *self, Vertex *v, int weight)
 {
     Adj *a = (Adj *) malloc(sizeof(Adj));
     Adj *tmp = self->first;
@@ -794,7 +797,7 @@ Data DeleteSpecData(List *list, Data data)
         list->tail = NULL;
     }
 
-    else if (!strcmp(list->cur->data, data))
+    else if (strcmp(list->cur->data, data) == 0)
     {
         delNode = list->cur;
         delData = list->head->data;
@@ -815,7 +818,7 @@ Data DeleteSpecData(List *list, Data data)
             before = before->next;
 
         delNode = list->cur;
-        delData = (char *) list->cur->data;
+        delData = list->cur->data;
 
         if (list->cur == list->tail)
             list->tail = before;
@@ -975,6 +978,7 @@ void GetTweetsNum()
             AddData_Head(&(user + userIndex)->tweet_Word, str, (user + userIndex)->idNumber);
             index++;
         }
+
         else if (index == 1) { index++; }
 
         else if (index == 2)
@@ -1154,8 +1158,8 @@ void PrintAllFriendShip(int idNum)
     {
         if ((user + i)->idNumber == idNum)
         {
-            printf("\t\tID NUM: %d  \n\t\t", (user + i)->idNumber);
-            printf("Friends List: ");
+            printf("ID NUM: %d  \n", (user + i)->idNumber);
+
 
             cur = (user + i)->friendShip.head;
             while (cur != NULL)
@@ -1165,8 +1169,10 @@ void PrintAllFriendShip(int idNum)
                 count++;
             }
             printf("NULL\n\n");
+
             break;
         }
+
     }
 }
 
@@ -1236,10 +1242,10 @@ void Word_ID_RealtionShip_Func(char *str, int select)
             max[i] = -1;
 
         QuickSort(index, max, 0, Total_Tweets);
-        
+
         NewLine
         printf("\t\t2. Top5_Most_Tweeted_User\n\n");
-        int idx1=1;
+        int idx1 = 1;
         printf("\t\t\tNum\t  ID\t\t\t\t Word\n");
         for (int i = Total_Tweets - 1; i > Total_Tweets - 6; i--)
             printf("\t\t\t%d번)\t %d  ->\t\t\t  %s\n", idx1++, idNum[index[i]], word[index[i]]);
@@ -1253,7 +1259,7 @@ void Word_ID_RealtionShip_Func(char *str, int select)
         getchar();
         gets(string);
         strcat(string, "\n");
-        
+
         NewLine
         printf("\t\t4. Find_User_Who_Tweeted_word\n\n");
 
@@ -1284,7 +1290,7 @@ void Word_ID_RealtionShip_Func(char *str, int select)
     else if (select == Find_All_People_Who_are_Friend_of_4)
     {
         int idx = 0, check = FALSE;
-        
+
         NewLine
         printf("\t\t5. Find_All_People_Who_are_Friend_of_4\n\n");
         printf("\t\tFind Word is %s\n\n", string);
@@ -1327,7 +1333,8 @@ void Word_ID_RealtionShip_Func(char *str, int select)
                     printf("\t\t%s is already deleted\n", string);
                     return;
                 }
-                DeleteSpecData(tweet, string);
+
+                printf("\t\t%s\t\twhat %d tweeted is deleted\n", DeleteSpecData(tweet, string), idNum[idx]);
             }
             idNum[idx] = -1;
             idx++;
@@ -1361,8 +1368,8 @@ void Word_ID_RealtionShip_Func(char *str, int select)
 
                 if (temp)
                 {
-                    printf("\t\tID: %d is deleted \n\n", idNum[idx]);
                     deletion(temp);
+                    printf("\t\tID: %d is deleted \n\n", idNum[idx]);
                 }
             }
             idNum[idx] = -1;
@@ -1446,12 +1453,162 @@ void Print_Statistics()
         avg_Tweet += key;
     }
     avg_Tweet /= Total_User;
-    
+
 
     printf("\t\tAverage tweets per user: %d\n", avg_Tweet);
     printf("\t\tMinium tweets per user: %d -> %d\n", min_ID, min_Tweet);
     printf("\t\tMaximum tweets per user: %d -> %d\n", max_ID, max_Tweet);
     NewLine
+}
+
+void GraphFunc()
+{
+    DFSVertex vertices[User_index];
+
+    for (int i = 0; i < User_index; i++)
+    {
+        DFSVertex_init(&vertices[i]);
+        vertices[i].super.name = (user + i)->idNumber;
+    }
+
+    for (int i = 0; i < User_index; i++)
+        vertices[i].super.n = i;
+
+    DFSVertex *addNode = (DFSVertex *) malloc(sizeof(DFSVertex) * User_index);
+
+    for (int i = 0; i < User_index; i++)
+        *(addNode + i) = vertices[i];
+
+
+    for (int i = 0; i < User_index; i++)
+    {
+        Node *cur = (user + i)->friendShip.head;
+
+        while (cur != NULL)
+        {
+            int temp = cur->idNum;
+            int weight = 0;
+            int idx = 0;
+
+            for (int j = 0; j < User_index; j++)
+            {
+                if ((addNode + j)->super.name == temp)
+                    break;
+                idx++;
+            }
+
+            Vertex_add(&(addNode + i)->super, &(addNode + idx)->super, weight);
+
+            cur = cur->next;
+        }
+
+        /*for(Adj *p = (addNode+i)->super.first; p; p = p->next)
+            printf("%d ", (addNode + p->n)->super.name);
+     
+        NewLine*/
+    }
+
+    /*Adj *p = vertices[0].super.first;
+    
+    while(p != NULL)
+    {
+        printf("%d ", vertices[p->n].super.name);
+        p = p->next;
+    }
+*/
+
+    /*for(int i=0; i < User_index; i++)
+    {
+        printf("Vertex :  %d -> ", vertices[i].super.name);
+        
+        for(Adj *p = (addNode+i)->super.first; p; p = p->next)
+            printf("%d ", (addNode + p->n)->super.name);
+        
+        NewLine
+    }*/
+
+
+    DFSVertex tranVertex[User_index];
+
+    for (int i = 0; i < User_index; i++)
+    {
+        DFSVertex_init(&tranVertex[i]);
+        tranVertex[i].super.name = (user + i)->idNumber;
+    }
+
+    for (int i = 0; i < User_index; i++)
+        tranVertex[i].super.n = i;
+
+    DFSVertex *Tran_addNode = (DFSVertex *) malloc(sizeof(DFSVertex) * User_index);
+
+    for (int i = 0; i < User_index; i++)
+        *(Tran_addNode + i) = tranVertex[i];
+
+
+    for (int i = 0; i < User_index; i++)
+    {
+        Node *cur = (user + i)->friendShip.head;
+        int parentNode = (addNode + i)->super.n;
+
+        while (cur != NULL)
+        {
+            int temp = cur->idNum;
+            int weight = 0;
+            int idx = 0;
+
+            for (int j = 0; j < User_index; j++)
+            {
+                if ((Tran_addNode + j)->super.name == temp)
+                    break;
+                idx++;
+            }
+
+            Tran_Vertex_add(&(Tran_addNode + idx)->super, &(Tran_addNode + parentNode)->super, weight);
+
+            cur = cur->next;
+        }
+
+        /*for(Adj *p = (addNode+i)->super.first; p; p = p->next)
+            printf("%d ", (addNode + p->n)->super.name);
+     
+        NewLine*/
+    }
+
+    // addNode is Original Vertex
+    // Tran_addNode is transversed Vertex
+
+    dfs(addNode, User_index);
+
+    // Now, do Denumeration Working
+
+
+    int max = 0;
+    int idx = 0;
+    int order = 0;
+
+    for (int j = 0; j < User_index; j++)
+    {
+        for (int i = 0; i < User_index; i++)
+        {
+            if (max < (addNode + i)->dfs_out)
+            {
+                max = (addNode + i)->dfs_out;
+                order = (addNode + i)->super.n;
+                idx = i;
+            }
+        }
+
+        (addNode + idx)->dfs_out = -1;
+
+        (Tran_addNode + idx)->super.n = j;
+    }
+
+    for (int i = 0; i < User_index; i++)
+    {
+        printf("%-8s   %-8s  %-9s%-9s%-6s       %-5s\n", "name", "color", "parent", "dfs_in", "dfs_out", "child");
+        print_dfsvertex(addNode, i);
+        print_dfsvertex(Tran_addNode, i);
+    }
 }
 
 void Interface()
@@ -1504,8 +1661,14 @@ int Process()
         case 8:
             /*8. Find strongly connected components
             DFS -> Denumeration -> Transpose -> Group -> Forest -> Group*/
+            GraphFunc();
+            break;
         case 9:
-
+            NewLine
+            puts("\t\tNot Available");
+            puts("\t\t서비스 점검중...");
+            NewLine
+            break;
         case 99:
             NewLine
             puts("\t\tQuit the program");
@@ -1519,7 +1682,6 @@ int Process()
 
 int main(void)
 {
-    int sNum;
 
     GetTheUserNum();
     RelaxUser();
@@ -1529,16 +1691,7 @@ int main(void)
     do
     {
         NewLine
-        printf("\t\tPlease Enter any key ");
-        scanf("%d", &sNum);
-
-        NewLine
-
-        if (sNum)
-            Interface();
-        else
-            break;
-
+        Interface();
     } while (Process());
 
     return 0;
